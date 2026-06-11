@@ -236,7 +236,7 @@ app.get('/', async (req, res) => {
       return res.type('html').send(`<h2>❌ Lỗi: ${err.message}</h2>`);
     }
   }
-  res.type('html').send(`<!DOCTYPE html><html><head><meta name="zalo-platform-site-verification" content="OFpW5E3FJ1Xguy4-eUrB0sVec1wBdar8EJ4r" /></head><body>UBND phuong Phuoc Thanh - OA Zalo</body></html>`);
+  res.type('html').send(`<!DOCTYPE html><html><head><meta name="zalo-platform-site-verification" content="Ue2d3wgV8onRd8iKtPuUII-laHV3sKH0CJ8s" /></head><body>UBND phuong Phuoc Thanh - OA Zalo</body></html>`);
 });
 
 app.get('/health', (req, res) => {
