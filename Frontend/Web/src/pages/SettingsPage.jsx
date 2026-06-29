@@ -282,6 +282,18 @@ export default function SettingsPage() {
     onError: (e) => toast.error(e.response?.data?.error || 'Lỗi tạo nhóm'),
   })
 
+  const createGroupMutation = useMutation({
+    mutationFn: (data) => api.post('/api/categories/create-zalo-group', data).then((r) => r.data),
+    onSuccess: () => {
+      toast.success('Đã tạo nhóm Zalo thành công')
+      setShowAddForm(false)
+      setForm({ name: '', icon: '📋', zaloGroupId: '' })
+      setSelectedFollowers([])
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+    },
+    onError: (e) => toast.error(e.response?.data?.error || 'Lỗi tạo nhóm'),
+  })
+
   const deleteCatMutation = useMutation({
     mutationFn: (id) => api.delete(`/api/categories/${id}`).then((r) => r.data),
     onSuccess: () => {
@@ -294,10 +306,41 @@ export default function SettingsPage() {
   const categories = catsData?.categories ?? []
   const followers = followersData?.followers ?? []
 
+  const [addMode, setAddMode] = useState('create')
+  const [selectedFollowers, setSelectedFollowers] = useState([])
+  const [searchFollower, setSearchFollower] = useState('')
+
+  const availableFollowers = useMemo(() => {
+    const q = searchFollower.toLowerCase()
+    return followers.filter(f => {
+      if (selectedFollowers.some(sf => sf.user_id === f.user_id)) return false
+      if (!q) return true
+      return f.display_name?.toLowerCase().includes(q) || f.user_id?.includes(q)
+    })
+  }, [followers, selectedFollowers, searchFollower])
+
   function handleSubmit(e) {
     e.preventDefault()
-    if (!form.name.trim() || !form.zaloGroupId.trim()) return
-    createMutation.mutate({ ...form, order: categories.length + 1 })
+    if (!form.name.trim()) return
+    
+    if (addMode === 'link') {
+      if (!form.zaloGroupId.trim()) return
+      createMutation.mutate({ ...form, order: categories.length + 1 })
+    } else {
+      if (selectedFollowers.length === 0) {
+        return toast.error('Vui lòng chọn ít nhất 1 thành viên ban đầu (Bắt buộc theo chuẩn Zalo)')
+      }
+      createGroupMutation.mutate({
+        name: form.name,
+        icon: form.icon,
+        order: categories.length + 1,
+        members: selectedFollowers.map(f => ({
+          userId: f.user_id,
+          displayName: f.display_name,
+          avatar: f.avatar
+        }))
+      })
+    }
   }
 
   return (
@@ -322,8 +365,23 @@ export default function SettingsPage() {
 
       {/* Form thêm nhóm mới */}
       {showAddForm && (
-        <form onSubmit={handleSubmit} className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 space-y-3">
-          <p className="text-sm font-semibold text-blue-700">Thêm nhóm Zalo mới</p>
+        <form onSubmit={handleSubmit} className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setAddMode('create')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${addMode === 'create' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+            >
+              Tạo mới trên Zalo
+            </button>
+            <button
+              type="button"
+              onClick={() => setAddMode('link')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${addMode === 'link' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+            >
+              Liên kết nhóm có sẵn
+            </button>
+          </div>
 
           <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
             <div className="space-y-1">
@@ -342,7 +400,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="space-y-1">
                 <label className="text-xs text-slate-500 font-medium">Tên nhóm</label>
                 <input
@@ -354,35 +412,94 @@ export default function SettingsPage() {
                   className="w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 font-medium">Zalo Group ID</label>
-                <input
-                  type="text"
-                  placeholder="VD: 6f2ab62e124cfb12a25d"
-                  value={form.zaloGroupId}
-                  onChange={(e) => setForm((f) => ({ ...f, zaloGroupId: e.target.value }))}
-                  required
-                  className="w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400"
-                />
-              </div>
+
+              {addMode === 'link' ? (
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-500 font-medium">Zalo Group ID</label>
+                  <input
+                    type="text"
+                    placeholder="VD: 6f2ab62e124cfb12a25d"
+                    value={form.zaloGroupId}
+                    onChange={(e) => setForm((f) => ({ ...f, zaloGroupId: e.target.value }))}
+                    required={addMode === 'link'}
+                    className="w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Sử dụng cách này nếu bạn đã tạo nhóm thủ công trên app Zalo.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-medium">Thành viên ban đầu (Chọn ≥ 1, bắt buộc phải có Admin OA)</label>
+                  
+                  {/* Danh sách đang chọn */}
+                  {selectedFollowers.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-white rounded-md border border-slate-200 min-h-[38px]">
+                      {selectedFollowers.map(f => (
+                        <div key={f.user_id} className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[11px] font-medium border border-blue-100">
+                          <Avatar name={f.display_name} avatar={f.avatar} size={4} />
+                          <span className="truncate max-w-[100px]">{f.display_name || f.user_id}</span>
+                          <button type="button" onClick={() => setSelectedFollowers(prev => prev.filter(x => x.user_id !== f.user_id))} className="text-blue-400 hover:text-blue-600">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Tìm kiếm */}
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Tìm follower để thêm..."
+                      value={searchFollower}
+                      onChange={(e) => setSearchFollower(e.target.value)}
+                      className="w-full h-8 pl-8 pr-3 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400"
+                    />
+                  </div>
+
+                  {/* Danh sách tìm được */}
+                  {searchFollower && availableFollowers.length > 0 && (
+                    <div className="max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-white divide-y divide-slate-50">
+                      {availableFollowers.map(f => (
+                        <button
+                          key={f.user_id}
+                          type="button"
+                          onClick={() => { setSelectedFollowers(p => [...p, f]); setSearchFollower('') }}
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 hover:bg-blue-50 transition-colors text-left"
+                        >
+                          <Avatar name={f.display_name} avatar={f.avatar} size={6} />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-slate-700 truncate">{f.display_name || '(Không tên)'}</p>
+                          </div>
+                          <Plus className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchFollower && availableFollowers.length === 0 && (
+                    <p className="text-xs text-slate-400 py-1">Không tìm thấy follower nào.</p>
+                  )}
+                  <p className="text-[11px] text-slate-400 italic mt-1">Zalo yêu cầu ít nhất 1 người phải là Quản trị viên (Admin) của OA.</p>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex gap-2 justify-end pt-1">
+          <div className="flex gap-2 justify-end pt-1 border-t border-blue-100/50 mt-3 pt-3">
             <button
               type="button"
-              onClick={() => { setShowAddForm(false); setForm({ name: '', icon: '📋', zaloGroupId: '' }) }}
+              onClick={() => { setShowAddForm(false); setForm({ name: '', icon: '📋', zaloGroupId: '' }); setSelectedFollowers([]) }}
               className="px-3 py-1.5 rounded-md text-sm text-slate-600 hover:bg-slate-100 transition-colors"
             >
               Hủy
             </button>
             <button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={addMode === 'link' ? createMutation.isPending : createGroupMutation.isPending}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {createMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-              Tạo nhóm
+              {(addMode === 'link' ? createMutation.isPending : createGroupMutation.isPending) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              {addMode === 'link' ? 'Liên kết nhóm' : 'Tạo nhóm Zalo'}
             </button>
           </div>
         </form>
