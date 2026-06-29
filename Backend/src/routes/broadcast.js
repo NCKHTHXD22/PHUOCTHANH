@@ -8,6 +8,7 @@ const { getStoredGroups, addGroup, removeGroup } = require('../services/groupSer
 const { sendToUsers, getJob } = require('../services/broadcastService')
 const { getLogs, deleteLog, clearAllLogs } = require('../services/logService')
 const { uploadImageToZalo, uploadFileToZalo } = require('../utils/zaloApi')
+const { uploadVideo } = require('../utils/cloudinary')
 
 const UPLOAD_DIR = path.join(__dirname, '../../public/images')
 
@@ -172,10 +173,14 @@ router.post('/upload/video', (req, res) => {
     if (err) return res.status(400).json({ error: err.message })
     if (!req.file) return res.status(400).json({ error: 'Không có file video' })
 
-    const videoUrl = `${process.env.PUBLIC_URL || ''}/images/${req.file.filename}`
-    // Giữ video 6 giờ rồi xoá
-    setTimeout(() => fs.unlink(req.file.path, () => {}), 6 * 60 * 60 * 1000)
-    res.json({ ok: true, articleToken: videoUrl })
+    try {
+      const videoUrl = await uploadVideo(req.file.path)
+      fs.unlink(req.file.path, () => {})
+      res.json({ ok: true, articleToken: videoUrl })
+    } catch (e) {
+      fs.unlink(req.file.path, () => {})
+      res.status(500).json({ error: e.message })
+    }
   })
 })
 

@@ -38,4 +38,13 @@ async function uploadFromZaloImageUrl(zaloUrl) {
   return uploadFromBuffer(buffer, filename);
 }
 
-module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl };
+// Upload video từ file local lên Cloudinary → trả URL CDN vĩnh viễn
+async function uploadVideo(filePath) {
+  const result = await cloudinary.uploader.upload(filePath, {
+    folder: 'phuocthanh-goopy',
+    resource_type: 'video',
+  });
+  return result.secure_url;
+}
+
+module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl, uploadVideo };
