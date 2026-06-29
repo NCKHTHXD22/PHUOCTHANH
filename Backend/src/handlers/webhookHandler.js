@@ -1,11 +1,10 @@
 const { sendZaloText } = require('../utils/zaloApi');
-const {
-  startFeedback, handleText, handleImage, handleContactCard, isFeedbackTrigger,
-} = require('../services/feedbackService');
+const { isFeedbackTrigger } = require('../services/feedbackService');
 const { saveProfile } = require('../services/profileCache');
 const { searchDossier, extractDossiers, sendDossierCard, isDossierCode } = require('../services/hoSoService');
 const { sendWaterOutageCard } = require('../services/catNuocService');
 const { addGroup } = require('../services/groupService');
+const CONFIG = require('../config');
 
 // Lưu trạng thái hội thoại theo userId (tự xóa sau 10 phút)
 const userStates = new Map();
@@ -137,7 +136,7 @@ async function handleWebhook(body) {
     await sendZaloText(userId,
       'Xin chào! Chào mừng bạn quan tâm OA UBND Phước Thành 🏛️\n\n' +
       'Bạn có thể:\n' +
-      '• 📝 Gửi góp ý, phản ánh — chọn "Góp ý" hoặc nhắn #goopy\n' +
+      '• 📝 Gửi góp ý, phản ánh — chọn mục "Góp ý - Phản ánh" trong menu\n' +
       '• 📋 Tra cứu hồ sơ hành chính — nhắn #tracuuhoso\n' +
       '• 💧 Xem lịch cắt nước — nhắn #lichcatnuoc'
     );
@@ -148,17 +147,6 @@ async function handleWebhook(body) {
   if (eventName === 'user_send_text' || eventName === 'user_submit_info') {
     let text;
     if (eventName === 'user_send_text') {
-      // Kiểm tra contact card trong attachment
-      const attachments = body.message?.attachments || [];
-      const contactAtt = attachments.find(a => a.type === 'contact');
-      if (contactAtt) {
-        const phone = contactAtt.payload?.phone || contactAtt.payload?.phoneNumber || '';
-        const contactName = contactAtt.payload?.name || contactAtt.payload?.display_name || displayName;
-        if (phone) {
-          await handleContactCard(userId, phone, contactName);
-          return;
-        }
-      }
       text = (body.message?.text || '').trim();
     } else {
       text = (body.info?.action_payload || body.info?.data || body.info?.action || '').trim();
@@ -231,22 +219,15 @@ async function handleWebhook(body) {
       return;
     }
 
-    // ── Góp ý / phản ánh ──────────────────────────────────
+    // ── Góp ý / phản ánh — hướng dẫn dùng form web (menu "Góp ý - Phản ánh") ──
     if (isFeedbackTrigger(lower) || lower === '#goopy') {
-      await startFeedback(userId, displayName);
+      await sendZaloText(userId,
+        '📝 Để gửi góp ý / phản ánh, vui lòng chọn mục "Góp ý - Phản ánh" trong menu bên dưới.\n\n' +
+        (CONFIG.REPORT_APP_URL ? `Hoặc bấm vào link: ${CONFIG.REPORT_APP_URL}` : '')
+      );
       return;
     }
 
-    await handleText(userId, text, displayName);
-    return;
-  }
-
-  // User gửi ảnh trực tiếp
-  if (eventName === 'user_send_image') {
-    const attachments = body.message?.attachments || [];
-    const imageAtt = attachments.find(a => a.type === 'photo' || a.type === 'image');
-    const imageUrl = imageAtt?.payload?.url || imageAtt?.payload?.thumbnail || '';
-    if (imageUrl) await handleImage(userId, imageUrl);
     return;
   }
 }

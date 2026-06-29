@@ -7,8 +7,10 @@ const userRoutes = require('./users')
 const categoryRoutes = require('./categories')
 const zaloMembersRoutes = require('./zalo-members')
 const broadcastRoutes = require('./broadcast')
+const publicFeedbackRoutes = require('./publicFeedback')
 
 router.use('/auth', authRoutes)
+router.use('/public', publicFeedbackRoutes)
 
 router.use(requireAuth)
 router.use('/stats', statsRoutes)

@@ -29,6 +29,11 @@ const menuConfig = {
       type: 'ActionOpenURL', // nhóm
       sub_menu: [
         {
+          title: '📝 Góp ý - Phản ánh',
+          type: 'link',                // mở form web (Frontend/ReportApp) trong webview Zalo
+          payload: process.env.REPORT_APP_URL || 'https://example.com/', // TODO: dán URL Vercel của ReportApp sau khi deploy
+        },
+        {
           title: '🔍 Tra cứu hồ sơ',
           type: 'text',               // gửi text để kích hoạt chatbot
           payload: '#tracuuhoso',
