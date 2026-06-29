@@ -118,6 +118,26 @@ async function sendZaloGroupText(text) {
   return sendZaloToGroup(text, CONFIG.ZALO_GROUP_ID);
 }
 
+// Gửi 1 ảnh đến user (dùng cho card hồ sơ / cắt điện / cắt nước) — throw khi lỗi để fallback text
+async function sendZaloImage(userId, attachmentId) {
+  const res = await zaloPost('https://openapi.zalo.me/v2.0/oa/message', {
+    recipient: { user_id: String(userId) },
+    message: {
+      attachment: {
+        type: 'template',
+        payload: {
+          template_type: 'media',
+          elements: [{ media_type: 'image', attachment_id: attachmentId }],
+        },
+      },
+    },
+  });
+  if (res.data?.error !== 0) {
+    console.error('[Zalo] Lỗi gửi ảnh:', res.data);
+    throw new Error(`Zalo image error ${res.data?.error}: ${res.data?.message}`);
+  }
+}
+
 // Gửi nhiều ảnh đến user (mỗi ảnh 1 message)
 async function sendZaloImages(userId, attachmentIds) {
   for (const attachId of attachmentIds) {
@@ -281,12 +301,99 @@ async function getZaloGroupMembers(groupId) {
   }
 }
 
+// ===== GMF (Group Management Feature) v3.0 =====
+
+// Lấy danh sách nhóm OA đang quản lý (GMF v3.0)
+async function getGroupsOfOA() {
+  const doRequest = (token) =>
+    axios.get('https://openapi.zalo.me/v3.0/oa/group/getgroupsofoa', {
+      headers: { access_token: token },
+    });
+  let res = await doRequest(getToken());
+  if (res.data?.error === -216) {
+    const newToken = await refreshAccessToken();
+    res = await doRequest(newToken);
+  }
+  return res.data;
+}
+
+// Lấy danh sách thành viên 1 nhóm (GMF v3.0)
+async function getGroupMembersV3(groupId) {
+  const doRequest = (token) =>
+    axios.get('https://openapi.zalo.me/v3.0/oa/group/listmember', {
+      params: { group_id: String(groupId), offset: 0, count: 50 },
+      headers: { access_token: token },
+    });
+  let res = await doRequest(getToken());
+  if (res.data?.error === -216) {
+    const newToken = await refreshAccessToken();
+    res = await doRequest(newToken);
+  }
+  if (res.data?.error !== 0) {
+    console.warn(`[Zalo] listmember group=${groupId} lỗi:`, res.data?.error, res.data?.message);
+  }
+  return { members: res.data?.data?.members || [], raw: res.data };
+}
+
+// Tạo nhóm Zalo GMF v3.0 từ danh sách thành viên ban đầu
+async function createZaloGroup(name, memberIds, description = '') {
+  const assetId = process.env.ZALO_ASSET_ID;
+  if (!assetId) throw new Error('Chưa cấu hình ZALO_ASSET_ID trong hệ thống (file .env)');
+
+  const doRequest = (token) =>
+    axios.post('https://openapi.zalo.me/v3.0/oa/group/creategroupwithoa', {
+      group_name: String(name),
+      group_description: String(description || name),
+      asset_id: String(assetId),
+      member_user_ids: memberIds.map(String)
+    }, {
+      headers: { access_token: token, 'Content-Type': 'application/json' },
+    });
+
+  let res = await doRequest(getToken());
+  if (res.data?.error === -216) {
+    const newToken = await refreshAccessToken();
+    res = await doRequest(newToken);
+  }
+
+  if (res.data?.error !== 0) {
+    console.error(`[Zalo] Lỗi tạo nhóm "${name}":`, res.data?.error, res.data?.message);
+    throw new Error(`Zalo error ${res.data?.error}: ${res.data?.message}`);
+  }
+
+  return res.data?.data?.group_id;
+}
+
+// Xóa/Giải tán nhóm Zalo GMF v3.0
+async function deleteZaloGroup(groupId) {
+  const doRequest = (token) =>
+    axios.post('https://openapi.zalo.me/v3.0/oa/group/delete', {
+      group_id: String(groupId)
+    }, {
+      headers: { access_token: token, 'Content-Type': 'application/json' },
+    });
+
+  let res = await doRequest(getToken());
+  if (res.data?.error === -216) {
+    const newToken = await refreshAccessToken();
+    res = await doRequest(newToken);
+  }
+
+  if (res.data?.error !== 0) {
+    console.warn(`[Zalo] Lỗi xóa nhóm ${groupId}:`, res.data?.error, res.data?.message);
+    throw new Error(`Zalo error ${res.data?.error}: ${res.data?.message}`);
+  }
+
+  return true;
+}
+
 module.exports = {
   sendZaloText,
   sendZaloTextToGroup,
   sendZaloButtons,
   sendZaloToGroup,
   sendZaloGroupText,
+  sendZaloImage,
   sendZaloImages,
   sendZaloImagesToGroup,
   sendZaloImageWithLink,
@@ -298,4 +405,8 @@ module.exports = {
   uploadImageToZalo,
   uploadFileToZalo,
   getZaloGroupMembers,
+  getGroupsOfOA,
+  getGroupMembersV3,
+  createZaloGroup,
+  deleteZaloGroup,
 };

@@ -12,7 +12,10 @@ async function htmlToPng(html) {
     await page.setViewport({ width: 560, height: 800 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
     const filepath = path.join(os.tmpdir(), `card_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.png`);
-    await page.screenshot({ path: filepath, fullPage: true });
+    // Crop sát phần tử .card (full viền, không dư khoảng trắng). Fallback fullPage nếu không có .card
+    const card = await page.$('.card');
+    if (card) await card.screenshot({ path: filepath });
+    else await page.screenshot({ path: filepath, fullPage: true });
     return filepath;
   } finally {
     await browser.close();
