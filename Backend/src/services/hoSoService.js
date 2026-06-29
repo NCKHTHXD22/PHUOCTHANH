@@ -8,10 +8,10 @@ const { htmlToPng } = require('../utils/imageGen');
 // Logo (quốc huy) → base64 (đọc 1 lần, nhúng thẳng vào card cho chắc, không phụ thuộc mạng)
 let LOGO_DATA_URI = '';
 try {
-  const buf = fs.readFileSync(path.join(__dirname, '../assets/bieu-trung.png'));
-  LOGO_DATA_URI = `data:image/png;base64,${buf.toString('base64')}`;
+  const buf = fs.readFileSync(path.join(__dirname, '../assets/logo-phuocthanh.jpg'));
+  LOGO_DATA_URI = `data:image/jpeg;base64,${buf.toString('base64')}`;
 } catch (e) {
-  console.warn('[HoSo] Không đọc được logo bieu-trung.png:', e.message);
+  console.warn('[HoSo] Không đọc được logo logo-phuocthanh.jpg:', e.message);
 }
 
 let ioctcTokenCache = { token: null, expiry: 0 };
