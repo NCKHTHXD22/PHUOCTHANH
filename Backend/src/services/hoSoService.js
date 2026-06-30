@@ -89,7 +89,7 @@ function formatDossierText(dossier) {
     `Hạn giải quyết: ${formatDate(dossier.HanGiaiQuyet)}\n` +
     `Ngày trả kết quả: ${formatDate(dossier.NgayTraKetQua)}\n` +
     `━━━━━━━━━━━━━━━━━━━\n` +
-    `📍 UBND Phước Thành`
+    `📍 UBND Xã Phước Thành`
   );
 }
 
@@ -133,7 +133,7 @@ tr { border-bottom: 1px solid #f0f0f0; }
 tr:last-child { border-bottom: none; }
 tr:nth-child(even) { background: #f9f9f9; }
 td { padding: 11px 18px; font-size: 13px; vertical-align: top; }
-.label { color: #888; width: 155px; white-space: nowrap; }
+.label { color: #555; width: 155px; white-space: nowrap; font-weight: bold; }
 .value { color: #222; }
 .bold { font-weight: bold; }
 .badge { display: inline-block; padding: 3px 12px; border-radius: 5px; font-size: 12px; color: white; font-weight: bold; background: ${badgeColor}; }
@@ -142,7 +142,7 @@ td { padding: 11px 18px; font-size: 13px; vertical-align: top; }
   <div class="header">
     <div class="logo">${LOGO_DATA_URI ? `<img src="${LOGO_DATA_URI}" style="width:40px;height:40px;object-fit:contain;" />` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'}</div>
     <div>
-      <div class="header-title">UBND Phước Thành</div>
+      <div class="header-title">UBND Xã Phước Thành</div>
       <div class="header-sub">Tra cứu hồ sơ hành chính</div>
     </div>
   </div>
