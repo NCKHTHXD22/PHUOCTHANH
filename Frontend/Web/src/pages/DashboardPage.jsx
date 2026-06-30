@@ -113,7 +113,7 @@ export default function DashboardPage() {
             Tổng quan hệ thống
           </h1>
           <p className="text-sm text-slate-400 mt-1.5 flex items-center gap-1.5">
-            <MapPin size={14} /> UBND Xã Phước Thành · Huyện Phước Sơn · Quảng Nam
+            <MapPin size={14} /> UBND Xã Phước Thành · Thành phố Đà Nẵng
           </p>
         </div>
         <button

@@ -386,7 +386,7 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="login-brand-title">UBND Xã Phước Thành</div>
-            <div className="login-brand-sub">Huyện Phước Sơn · Tỉnh Quảng Nam</div>
+            <div className="login-brand-sub">Thành phố Đà Nẵng</div>
           </div>
         </div>
 

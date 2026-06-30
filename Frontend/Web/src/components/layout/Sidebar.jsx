@@ -78,7 +78,7 @@ export default function Sidebar() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-white text-sm font-bold leading-tight truncate">UBND Xã Phước Thành</p>
-          <p className="text-blue-300/60 text-[11px] mt-0.5 truncate">Huyện Phước Sơn · Quảng Nam</p>
+          <p className="text-blue-300/60 text-[11px] mt-0.5 truncate">Thành phố Đà Nẵng</p>
         </div>
       </div>
 

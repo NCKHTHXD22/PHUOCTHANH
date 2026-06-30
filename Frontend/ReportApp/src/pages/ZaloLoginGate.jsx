@@ -68,7 +68,7 @@ function ComplaintMap({ points }) {
         L.geoJSON(data, {
           style: { color: '#0068ff', weight: 2.5, fillColor: '#0068ff', fillOpacity: 0.06, dashArray: '5,4' },
         })
-          .bindPopup('<b style="color:#0068ff">Xã Phước Thành</b><br>Huyện Đại Lộc, Quảng Nam')
+          .bindPopup('<b style="color:#0068ff">Xã Phước Thành</b><br>Thành phố Đà Nẵng')
           .addTo(mapInstanceRef.current)
       })
       .catch(() => {})
