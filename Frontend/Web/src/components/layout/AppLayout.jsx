@@ -84,12 +84,11 @@ export default function AppLayout() {
           <div className="relative px-6 py-4 flex items-center justify-between gap-4">
             {/* Left: logo + greeting + page title */}
             <div className="flex items-center gap-3 min-w-0">
-              <div className="relative shrink-0">
-                <div className="absolute inset-0 rounded-full bg-yellow-400/20 blur-sm" />
+              <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden">
                 <img
                   src={logoImg}
                   alt="Logo"
-                  className="relative h-9 w-9 object-contain"
+                  className="h-full w-full object-cover"
                 />
               </div>
               <div className="min-w-0">
