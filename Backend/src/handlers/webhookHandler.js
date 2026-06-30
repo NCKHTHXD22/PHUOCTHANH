@@ -25,6 +25,64 @@ function buildProgressText(fb) {
 
 // Lưu trạng thái hội thoại theo userId (tự xóa sau 10 phút)
 const userStates = new Map();
+// Cache danh sách phản ánh khi user đang chọn
+const userFeedbackCache = new Map();
+
+const NUM_EMOJI = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'];
+
+function feedbackStatusLabel(fb) {
+  if (fb.status === 'done' || fb.status === 'resolved') return '✅ Đã xử lý xong';
+  if (fb.status === 'draft') return '📋 Đang chờ duyệt';
+  return '🕐 Đang xử lý';
+}
+
+function buildFeedbackListMsg(feedbacks) {
+  let msg = '📋 Các phản ánh gần đây của bạn:\n';
+  feedbacks.forEach((fb, i) => {
+    const code = fb._id.toString().slice(-5).toUpperCase();
+    const date = new Date(fb.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const preview = (fb.content || '').slice(0, 50);
+    const ellipsis = fb.content?.length > 50 ? '...' : '';
+    msg += `\n${NUM_EMOJI[i]} #${code} · ${date} · ${feedbackStatusLabel(fb)}\n   ${preview}${ellipsis}\n`;
+  });
+  msg += `\nNhấn số (1-${feedbacks.length}) để xem chi tiết, hoặc nhấn mã (#XXXXX).\n(Nhấn "huỷ" để thoát)`;
+  return msg;
+}
+
+function buildFeedbackDetailMsg(fb) {
+  const code = fb._id.toString().slice(-5).toUpperCase();
+  const date = new Date(fb.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const catName = fb.categoryId?.name || 'Phản ánh';
+  const addr = fb.location?.address || (fb.location?.lat ? `${fb.location.lat}, ${fb.location.lng}` : 'Không có');
+
+  const icon = (d) => d ? '✅' : '⏳';
+  const step1 = true;
+  const step2 = !!fb.assignedTo;
+  const step3 = ['processing', 'draft', 'resolved', 'done'].includes(fb.status);
+  const step4 = !!fb.approvedBy || fb.status === 'resolved' || fb.status === 'done';
+  const step5 = fb.status === 'done';
+
+  let msg =
+    `─── THÔNG TIN HỒ SƠ ───\n` +
+    `🆔 Mã phản ánh: #${code}\n` +
+    `📅 Ngày gửi: ${date}\n` +
+    `🏷️ Loại: ${catName}\n` +
+    `📍 Địa chỉ: ${addr}\n` +
+    `📝 Nội dung: ${fb.content}\n\n` +
+    `📊 TIẾN TRÌNH XỬ LÝ\n` +
+    `${icon(step1)} 1. Đã gởi\n` +
+    `${icon(step2)} 2. Đã tiếp nhận\n` +
+    `${icon(step3)} 3. Đang xử lý\n` +
+    `${icon(step4)} 4. Đã duyệt\n` +
+    `${icon(step5)} 5. Đã xử lý`;
+
+  const reply = fb.finalResponse || fb.response || '';
+  if (reply) {
+    msg += `\n\n─── PHẢN HỒI CỦA UBND ───\n${reply}`;
+  }
+
+  return msg;
+}
 
 function setState(userId, state) {
   userStates.set(userId, state);
@@ -177,6 +235,7 @@ async function handleWebhook(body) {
     // Huỷ trạng thái
     if (['huỷ', 'huy', 'cancel', 'thoát', 'thoat'].includes(lower)) {
       userStates.delete(userId);
+      userFeedbackCache.delete(userId);
       await sendZaloText(userId, 'Đã huỷ. Bạn có thể chọn lại từ menu bên dưới.');
       return;
     }
@@ -236,41 +295,58 @@ async function handleWebhook(body) {
       return;
     }
 
+    // ── Theo dõi phản ánh — xử lý khi đang chọn ──────────
+    if (state === 'waiting_for_theodoi_select') {
+      const cached = userFeedbackCache.get(userId) || [];
+      let matched = null;
+
+      const num = parseInt(lower.trim(), 10);
+      if (num >= 1 && num <= cached.length) {
+        matched = cached[num - 1];
+      }
+
+      if (!matched) {
+        const codeInput = lower.replace('#', '').trim().toUpperCase();
+        matched = cached.find(fb => fb._id.toString().slice(-5).toUpperCase() === codeInput);
+      }
+
+      if (matched) {
+        userStates.delete(userId);
+        userFeedbackCache.delete(userId);
+        await sendZaloText(userId, buildFeedbackDetailMsg(matched));
+      } else {
+        await sendZaloText(userId,
+          `❌ Không tìm thấy. Vui lòng nhập số từ 1-${cached.length} hoặc mã (#XXXXX).\n(Nhấn "huỷ" để thoát)`
+        );
+      }
+      return;
+    }
+
     // ── Theo dõi phản ánh (#theodoigoopy) ──────────────────
     if (lower === '#theodoigoopy' || lower.includes('theodoigoopy') || lower.includes('theo dõi phản ánh')) {
       try {
         const userFeedbacks = await Feedback.find({ userId })
           .sort({ createdAt: -1 })
+          .limit(5)
           .populate('categoryId', 'name')
-          .lean()
+          .lean();
 
         if (userFeedbacks.length === 0) {
           await sendZaloText(userId,
             '📋 Bạn chưa có phản ánh nào được gửi.\n\n' +
             'Chọn "Góp ý - Phản ánh" trong menu để gửi phản ánh mới.'
-          )
-          return
+          );
+          return;
         }
 
-        let msg = `📊 TÌNH TRẠNG PHẢN ÁNH CỦA BẠN\n${'─'.repeat(30)}\n`
-        const showList = userFeedbacks.slice(0, 3)
-        for (const fb of showList) {
-          const shortCode = fb._id.toString().slice(-5).toUpperCase()
-          const catName = fb.categoryId?.name || 'Phản ánh'
-          const dateStr = new Date(fb.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
-          msg += `\n🆔 #${shortCode} | ${catName} | ${dateStr}\n`
-          msg += buildProgressText(fb) + '\n'
-        }
-        if (userFeedbacks.length > 3) {
-          msg += `\n(Còn ${userFeedbacks.length - 3} phản ánh khác không hiển thị)`
-        }
-
-        await sendZaloText(userId, msg)
+        userFeedbackCache.set(userId, userFeedbacks);
+        setState(userId, 'waiting_for_theodoi_select');
+        await sendZaloText(userId, buildFeedbackListMsg(userFeedbacks));
       } catch (err) {
-        console.error('[TraCuuGoopy] Lỗi:', err.message)
-        await sendZaloText(userId, '⚠️ Không thể tra cứu lúc này, vui lòng thử lại sau.')
+        console.error('[TheodoiGoopy] Lỗi:', err.message);
+        await sendZaloText(userId, '⚠️ Không thể tra cứu lúc này, vui lòng thử lại sau.');
       }
-      return
+      return;
     }
 
     // ── Góp ý / phản ánh — hướng dẫn dùng form web (menu "Góp ý - Phản ánh") ──
