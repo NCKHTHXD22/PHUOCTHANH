@@ -38,3 +38,10 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Hiệu ứng máy bay giấy ở nút "Gửi phản ánh" — bay nhẹ liên tục (hợp mobile, không cần hover) */
+@keyframes plane-fly {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(2px, -2px) rotate(-6deg); }
+}
+.animate-plane { animation: plane-fly 1.8s ease-in-out infinite; }

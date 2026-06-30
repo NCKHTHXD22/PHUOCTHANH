@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, MapPin, Loader2 } from 'lucide-react'
+import { X, MapPin, Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -163,7 +163,10 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
     <div className="min-h-screen bg-background p-4">
       <Card className="mx-auto max-w-md animate-fade-in">
         <CardHeader>
-          <CardTitle className="gradient-text text-lg">Gửi góp ý - Phản ánh</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <img src="/LogoPhuocThanh.jpg" alt="Phước Thành" className="h-9 w-9 shrink-0 rounded-md object-contain" />
+            <CardTitle className="text-lg font-bold text-foreground">Gửi góp ý - Phản ánh</CardTitle>
+          </div>
           <div className="flex items-center gap-2 pt-1">
             {profile.avatar && <img src={profile.avatar} alt="" className="h-8 w-8 rounded-full" />}
             <span className="text-sm text-muted-foreground">Xin chào, {profile.name || 'bạn'}</span>
@@ -212,7 +215,7 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
                     {locationLoading ? 'Đang lấy vị trí...' : 'Lấy vị trí tự động'}
                   </Button>
                   <Button type="button" variant="outline" className="flex-1" onClick={handleManualMode}>
-                    Nhập tay
+                    Nhập địa chỉ
                   </Button>
                 </div>
               )}
@@ -269,8 +272,12 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" className="w-full" size="lg" disabled={submitting}>
-              {submitting ? 'Đang gửi...' : 'Gửi phản ánh'}
+            <Button type="submit" className="group w-full gap-2" size="lg" disabled={submitting}>
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Đang gửi...</>
+              ) : (
+                <><Send className="h-4 w-4 animate-plane" /> Gửi phản ánh</>
+              )}
             </Button>
           </form>
         </CardContent>
