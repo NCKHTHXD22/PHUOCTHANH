@@ -336,7 +336,7 @@ export default function LoginPage() {
         }).addTo(map)
         try { map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 14 }) } catch { /* noop */ }
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 
   useEffect(() => {
@@ -386,7 +386,7 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="login-brand-title">UBND Xã Phước Thành</div>
-            <div className="login-brand-sub">Thành phố Đà Nẵng</div>
+            <div className="login-brand-sub">Xã Phước Thành · Thành phố Đà Nẵng</div>
           </div>
         </div>
 
