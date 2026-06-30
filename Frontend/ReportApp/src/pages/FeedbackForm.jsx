@@ -142,7 +142,16 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
     setSubmitting(true)
     try {
       const res = await api.post('/feedbacks', formData)
-      onSuccess(res.data.code)
+      const catObj = categories.find(c => c._id === categoryId)
+      const catLabel = catObj ? `${catObj.icon ? catObj.icon + ' ' : ''}${catObj.name}` : ''
+      onSuccess({
+        code: res.data.code,
+        contact,
+        content,
+        address,
+        categoryName: catLabel,
+        imageCount: images.length,
+      })
     } catch (err) {
       setError(err.response?.data?.error || 'Có lỗi xảy ra, vui lòng thử lại')
     } finally {

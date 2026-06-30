@@ -17,10 +17,10 @@ router.get('/', async (req, res) => {
       .populate('assignedTo', 'fullName')
       .lean()
 
-    // Enrich displayName + avatar từ Redis profile cache
-    const missingIds = recent.filter((f) => !f.displayName && f.userId).map((f) => f.userId)
-    if (missingIds.length) {
-      const profiles = await getProfiles(missingIds)
+    // Enrich displayName + avatar từ Redis profile cache (lấy cho tất cả để có avatar)
+    const allUserIds = [...new Set(recent.filter((f) => f.userId).map((f) => f.userId))]
+    if (allUserIds.length) {
+      const profiles = await getProfiles(allUserIds)
       recent.forEach((f) => {
         if (f.userId && profiles[f.userId]) {
           if (!f.displayName && profiles[f.userId].display_name) {

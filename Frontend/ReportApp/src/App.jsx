@@ -8,7 +8,7 @@ export default function App() {
   const [auth, setAuth] = useState(null) // { accessToken, profile }
   const [loadingLogin, setLoadingLogin] = useState(false)
   const [loginError, setLoginError] = useState('')
-  const [submittedCode, setSubmittedCode] = useState(null)
+  const [submittedInfo, setSubmittedInfo] = useState(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -29,15 +29,15 @@ export default function App() {
     return <ZaloLoginGate loading={loadingLogin} error={loginError} />
   }
 
-  if (submittedCode) {
-    return <SuccessScreen code={submittedCode} onReset={() => setSubmittedCode(null)} />
+  if (submittedInfo) {
+    return <SuccessScreen info={submittedInfo} onReset={() => setSubmittedInfo(null)} />
   }
 
   return (
     <FeedbackForm
       profile={auth.profile}
       accessToken={auth.accessToken}
-      onSuccess={setSubmittedCode}
+      onSuccess={setSubmittedInfo}
     />
   )
 }

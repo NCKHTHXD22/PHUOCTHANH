@@ -44,13 +44,26 @@ async function createFeedbackEntry({ userId, displayName, contact, content, cate
 
   const shortCode = feedback._id.toString().slice(-5).toUpperCase();
 
+  const catLine = categoryName ? `🏷️ Loại góp ý: ${categoryName}\n` : ''
+  const locLine = location.address ? `📍 Địa chỉ: ${location.address}\n` : ''
+  const imgLine = imageUrls.length > 0 ? `🖼️ Hình ảnh: ${imageUrls.length} ảnh\n` : ''
+  const contentPreview = content.length > 150 ? content.slice(0, 150) + '...' : content
+
   try {
     await sendZaloText(userId,
-      '✅ Đã tiếp nhận phản ánh!\n\n' +
-      `Mã phản ánh: #${shortCode}\n` +
-      'UBND Phước Thành sẽ xử lý\n' +
-      'trong 2-3 ngày làm việc kể từ\n' +
-      'ngày tiếp nhận. Cảm ơn bạn!'
+      `✅ ĐÃ TIẾP NHẬN PHẢN ÁNH!\n` +
+      `${'─'.repeat(28)}\n` +
+      `📋 THÔNG TIN GÓP Ý\n` +
+      `${'─'.repeat(28)}\n` +
+      `🆔 Mã phản ánh: #${shortCode}\n` +
+      `📞 Liên hệ: ${contact}\n` +
+      `${catLine}` +
+      `📝 Nội dung: ${contentPreview}\n` +
+      `${locLine}` +
+      `${imgLine}` +
+      `${'─'.repeat(28)}\n` +
+      `🙏 Cảm ơn bạn đã tin tưởng gởi\n` +
+      `phản ánh tới UBND Xã Phước Thành!`
     );
   } catch (err) {
     console.warn('[Feedback] Không gửi được tin xác nhận Zalo:', err.message);
