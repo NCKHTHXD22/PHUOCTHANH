@@ -35,6 +35,7 @@ export default function AppLayout() {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [notifPos, setNotifPos] = useState(null)
   const notifRef = useRef(null)
 
   const { data: notifData } = useQuery({
@@ -114,7 +115,13 @@ export default function AppLayout() {
               {/* Bell */}
               <div className="relative" ref={notifRef}>
                 <button
-                  onClick={() => setNotifOpen(v => !v)}
+                  onClick={() => {
+                    if (!notifOpen && notifRef.current) {
+                      const r = notifRef.current.getBoundingClientRect()
+                      setNotifPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) })
+                    }
+                    setNotifOpen(v => !v)
+                  }}
                   className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 border border-white/20 hover:bg-white/25 transition-all"
                 >
                   <Bell className="h-4 w-4 text-white" />
@@ -125,7 +132,10 @@ export default function AppLayout() {
                   )}
                 </button>
                 {notifOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-xl text-slate-700">
+                  <div
+                    className="fixed z-50 w-80 rounded-xl border border-slate-200 bg-white shadow-xl text-slate-700"
+                    style={{ top: notifPos?.top ?? 60, right: notifPos?.right ?? 24 }}
+                  >
                     <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
                       <p className="text-sm font-semibold">Thông báo</p>
                       <span className="text-xs text-slate-400">{pendingCount} chờ xử lý</span>
