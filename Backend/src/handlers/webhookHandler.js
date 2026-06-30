@@ -236,8 +236,8 @@ async function handleWebhook(body) {
       return;
     }
 
-    // ── Theo dõi phản ánh (#tracuugoopy) ──────────────────
-    if (lower === '#tracuugoopy' || lower.includes('tracuugoopy') || lower.includes('theo dõi phản ánh')) {
+    // ── Theo dõi phản ánh (#theodoigoopy) ──────────────────
+    if (lower === '#theodoigoopy' || lower.includes('theodoigoopy') || lower.includes('theo dõi phản ánh')) {
       try {
         const userFeedbacks = await Feedback.find({ userId })
           .sort({ createdAt: -1 })
