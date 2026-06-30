@@ -190,6 +190,9 @@ app.post('/internal/sync-followers', async (req, res) => {
 // ── Scheduler gửi tin nhắn theo lịch ──────────────────
 require('./src/services/schedulerService').start();
 
+// ── Nhắc lịch xử lý hồ sơ trước 1 ngày đến khi hết hạn ──
+require('./src/services/deadlineReminderService').startDeadlineReminder();
+
 // ── REST API cho React frontend ────────────────────────
 const apiRouter = require('./src/routes/index');
 app.use('/api', apiRouter);

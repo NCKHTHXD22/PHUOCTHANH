@@ -4,7 +4,24 @@ const { saveProfile } = require('../services/profileCache');
 const { searchDossier, extractDossiers, sendDossierCard, isDossierCode } = require('../services/hoSoService');
 const { sendWaterOutageCard } = require('../services/catNuocService');
 const { addGroup } = require('../services/groupService');
+const Feedback = require('../models/Feedback');
 const CONFIG = require('../config');
+
+// Trả về chuỗi tiến trình xử lý phản ánh
+function buildProgressText(fb) {
+  const step1 = true // luôn đã gởi
+  const step2 = !!fb.assignedTo
+  const step3 = !!fb.approvedBy || fb.status === 'resolved' || fb.status === 'done'
+  const step4 = fb.status === 'resolved' || fb.status === 'done'
+
+  const icon = (done) => done ? '✅' : '⏳'
+  return (
+    `${icon(step1)} Đã gởi hồ sơ\n` +
+    `${icon(step2)} Đang xử lý\n` +
+    `${icon(step3)} Đã duyệt\n` +
+    `${icon(step4)} Hoàn tất`
+  )
+}
 
 // Lưu trạng thái hội thoại theo userId (tự xóa sau 10 phút)
 const userStates = new Map();
@@ -217,6 +234,43 @@ async function handleWebhook(body) {
     if (isDossierCode(text)) {
       await handleHoSoQuery(userId, text.trim().toUpperCase());
       return;
+    }
+
+    // ── Theo dõi phản ánh (#tracuugoopy) ──────────────────
+    if (lower === '#tracuugoopy' || lower.includes('tracuugoopy') || lower.includes('theo dõi phản ánh')) {
+      try {
+        const userFeedbacks = await Feedback.find({ userId })
+          .sort({ createdAt: -1 })
+          .populate('categoryId', 'name')
+          .lean()
+
+        if (userFeedbacks.length === 0) {
+          await sendZaloText(userId,
+            '📋 Bạn chưa có phản ánh nào được gửi.\n\n' +
+            'Chọn "Góp ý - Phản ánh" trong menu để gửi phản ánh mới.'
+          )
+          return
+        }
+
+        let msg = `📊 TÌNH TRẠNG PHẢN ÁNH CỦA BẠN\n${'─'.repeat(30)}\n`
+        const showList = userFeedbacks.slice(0, 3)
+        for (const fb of showList) {
+          const shortCode = fb._id.toString().slice(-5).toUpperCase()
+          const catName = fb.categoryId?.name || 'Phản ánh'
+          const dateStr = new Date(fb.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+          msg += `\n🆔 #${shortCode} | ${catName} | ${dateStr}\n`
+          msg += buildProgressText(fb) + '\n'
+        }
+        if (userFeedbacks.length > 3) {
+          msg += `\n(Còn ${userFeedbacks.length - 3} phản ánh khác không hiển thị)`
+        }
+
+        await sendZaloText(userId, msg)
+      } catch (err) {
+        console.error('[TraCuuGoopy] Lỗi:', err.message)
+        await sendZaloText(userId, '⚠️ Không thể tra cứu lúc này, vui lòng thử lại sau.')
+      }
+      return
     }
 
     // ── Góp ý / phản ánh — hướng dẫn dùng form web (menu "Góp ý - Phản ánh") ──

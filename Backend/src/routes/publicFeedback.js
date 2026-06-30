@@ -3,6 +3,7 @@ const axios = require('axios')
 const multer = require('multer')
 const CONFIG = require('../config')
 const Category = require('../models/Category')
+const Feedback = require('../models/Feedback')
 const { uploadFromBuffer } = require('../utils/cloudinary')
 const { createFeedbackEntry, isPhone, isEmail } = require('../services/feedbackService')
 
@@ -61,7 +62,7 @@ router.post('/zalo-login', async (req, res) => {
 // POST /api/public/feedbacks — tạo phản ánh từ form web (multipart, tối đa 5 ảnh)
 router.post('/feedbacks', upload.array('images', 5), async (req, res) => {
   try {
-    const { accessToken, contact, categoryId, content } = req.body
+    const { accessToken, contact, categoryId, content, address, lat, lng } = req.body
     if (!accessToken) return res.status(400).json({ error: 'Thiếu thông tin đăng nhập Zalo' })
     if (!contact || (!isPhone(contact) && !isEmail(contact))) {
       return res.status(400).json({ error: 'SĐT hoặc email không hợp lệ' })
@@ -82,6 +83,12 @@ router.post('/feedbacks', upload.array('images', 5), async (req, res) => {
       imageUrls.push(url)
     }
 
+    const location = {
+      address: address?.trim() || '',
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
+    }
+
     const feedback = await createFeedbackEntry({
       userId: profile.id,
       displayName: profile.name,
@@ -91,9 +98,38 @@ router.post('/feedbacks', upload.array('images', 5), async (req, res) => {
       categoryName: category?.name || '',
       categoryGroupId: category?.zaloGroupId || null,
       imageUrls,
+      location,
     })
 
     res.status(201).json({ ok: true, code: feedback._id.toString().slice(-5).toUpperCase() })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// GET /api/public/feedbacks/map — vị trí các phản ánh chưa hoàn tất (cho bản đồ trang login)
+router.get('/feedbacks/map', async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find({
+      status: { $nin: ['resolved', 'done'] },
+      'location.lat': { $ne: null },
+      'location.lng': { $ne: null },
+    })
+      .select('location content categoryId createdAt status')
+      .populate('categoryId', 'name icon')
+      .lean()
+
+    const points = feedbacks.map(fb => ({
+      lat: fb.location.lat,
+      lng: fb.location.lng,
+      address: fb.location.address || '',
+      content: fb.content.slice(0, 80) + (fb.content.length > 80 ? '...' : ''),
+      category: fb.categoryId ? `${fb.categoryId.icon || ''} ${fb.categoryId.name}`.trim() : 'Phản ánh',
+      status: fb.status,
+      createdAt: fb.createdAt,
+    }))
+
+    res.json({ points })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

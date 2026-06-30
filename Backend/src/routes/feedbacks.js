@@ -156,6 +156,29 @@ router.post('/:id/assign', requireRole('superadmin', 'dept_leader'), async (req,
         }
       }
       await sendZaloToGroup(msg, groupId, mentions)
+
+      // Gửi tin nhắn trực tiếp đến Zalo cá nhân của cán bộ được phân công
+      if (officer?.zaloUserId) {
+        const deadlineDate = feedback.deadline ? new Date(feedback.deadline) : null
+        const deadlineStr = deadlineDate
+          ? deadlineDate.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+          : 'Chưa xác định'
+        const locationStr = feedback.location?.address ? `\n📍 Địa chỉ: ${feedback.location.address}` : ''
+        const personalMsg =
+          `🔔 BẠN VỪA ĐƯỢC PHÂN CÔNG HỒ SƠ MỚI!\n` +
+          `${'─'.repeat(28)}\n` +
+          `🆔 Mã phản ánh: #${shortCode}\n` +
+          `📂 Loại: ${catName}\n` +
+          `📝 Nội dung: ${feedback.content.slice(0, 80)}${feedback.content.length > 80 ? '...' : ''}` +
+          `${locationStr}\n` +
+          `📅 Hạn xử lý: ${deadlineStr}\n\n` +
+          `Vui lòng đăng nhập hệ thống để xử lý kịp thời.`
+        try {
+          await sendZaloText(officer.zaloUserId, personalMsg)
+        } catch (e) {
+          console.warn('[Assign] Không gửi được DM cho cán bộ:', e.message)
+        }
+      }
     }
 
     res.json({ ok: true })
@@ -216,9 +239,14 @@ router.post('/:id/approve', requireRole('superadmin', 'dept_leader'), async (req
 
     // Lãnh đạo có thể sửa nội dung trước khi gửi; nếu không sửa thì dùng bản dự thảo gốc
     const finalResponse = req.body.finalResponse?.trim() || feedback.draftResponse.trim()
+    const shortCode = feedback._id.toString().slice(-5).toUpperCase()
 
-    // Gửi tin cho dân qua Zalo OA
-    await sendZaloText(feedback.userId, finalResponse)
+    // Gửi tin cho dân qua Zalo OA kèm tiêu đề mã phản ánh
+    const citizenMsg =
+      `📋 Mã phản ánh #${shortCode} đã hoàn tất xử lý\n` +
+      `${'─'.repeat(30)}\n` +
+      finalResponse
+    await sendZaloText(feedback.userId, citizenMsg)
 
     await Feedback.findByIdAndUpdate(req.params.id, {
       finalResponse,
@@ -233,7 +261,6 @@ router.post('/:id/approve', requireRole('superadmin', 'dept_leader'), async (req
     })
 
     // Thông báo vào nhóm
-    const shortCode = feedback._id.toString().slice(-5).toUpperCase()
     const groupId = feedback.categoryId?.zaloGroupId
     const msg =
       `✅ PHẢN ÁNH ĐÃ ĐƯỢC DUYỆT & GỬI DÂN\n` +

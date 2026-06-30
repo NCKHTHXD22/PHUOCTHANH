@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { X, MapPin, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,12 +11,65 @@ import { api } from '@/lib/api'
 const MAX_IMAGES = 5
 const MAX_SIZE = 5 * 1024 * 1024
 
+// Lấy vị trí qua Zalo JSBridge (Zalo WebView) hoặc browser geolocation
+async function detectLocation() {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Timeout')), 12000)
+
+    const done = (lat, lng) => {
+      clearTimeout(timeout)
+      resolve({ lat, lng })
+    }
+
+    if (window.ZaloJSBridge) {
+      window.ZaloJSBridge.invoke('getLocation', {}, (result) => {
+        if (result && result.error === 0) {
+          done(result.latitude, result.longitude)
+        } else {
+          // Fallback browser geolocation nếu Zalo từ chối
+          tryBrowserGeo(done, () => { clearTimeout(timeout); reject(new Error('Không lấy được vị trí')) })
+        }
+      })
+    } else if (navigator.geolocation) {
+      tryBrowserGeo(done, () => { clearTimeout(timeout); reject(new Error('Không lấy được vị trí')) })
+    } else {
+      clearTimeout(timeout)
+      reject(new Error('Trình duyệt không hỗ trợ GPS'))
+    }
+  })
+}
+
+function tryBrowserGeo(onSuccess, onError) {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => onSuccess(pos.coords.latitude, pos.coords.longitude),
+    onError,
+    { enableHighAccuracy: true, timeout: 10000 }
+  )
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=vi`,
+      { headers: { 'User-Agent': 'UBND-PhuocThanh-GoiY/1.0' } }
+    )
+    const data = await res.json()
+    return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+  } catch {
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+  }
+}
+
 export default function FeedbackForm({ profile, accessToken, onSuccess }) {
   const [categories, setCategories] = useState([])
   const [categoryId, setCategoryId] = useState('')
   const [contact, setContact] = useState('')
   const [content, setContent] = useState('')
   const [images, setImages] = useState([]) // [{file, previewUrl}]
+  const [address, setAddress] = useState('')
+  const [coords, setCoords] = useState(null) // { lat, lng }
+  const [locationMode, setLocationMode] = useState('') // '' | 'auto' | 'manual'
+  const [locationLoading, setLocationLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -34,6 +87,29 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
 
   function removeImage(idx) {
     setImages(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  async function handleAutoLocation() {
+    setLocationLoading(true)
+    setError('')
+    try {
+      const { lat, lng } = await detectLocation()
+      setCoords({ lat, lng })
+      const addr = await reverseGeocode(lat, lng)
+      setAddress(addr)
+      setLocationMode('auto')
+    } catch (err) {
+      setLocationMode('manual')
+      setError('Không lấy được vị trí tự động. Vui lòng nhập tay bên dưới.')
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
+  function handleManualMode() {
+    setLocationMode('manual')
+    setCoords(null)
+    setAddress('')
   }
 
   async function handleSubmit(e) {
@@ -56,6 +132,11 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
     formData.append('contact', contact.trim())
     formData.append('content', content.trim())
     if (categoryId) formData.append('categoryId', categoryId)
+    if (address.trim()) formData.append('address', address.trim())
+    if (coords) {
+      formData.append('lat', coords.lat)
+      formData.append('lng', coords.lng)
+    }
     images.forEach(({ file }) => formData.append('images', file))
 
     setSubmitting(true)
@@ -101,6 +182,56 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
             <div className="space-y-2">
               <Label htmlFor="content">Nội dung góp ý / phản ánh</Label>
               <Textarea id="content" value={content} onChange={e => setContent(e.target.value)} rows={5} placeholder="Mô tả chi tiết nội dung..." required />
+            </div>
+
+            {/* Địa chỉ phản ánh */}
+            <div className="space-y-2">
+              <Label>Địa chỉ phản ánh</Label>
+              {locationMode === '' && (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 gap-2"
+                    onClick={handleAutoLocation}
+                    disabled={locationLoading}
+                  >
+                    {locationLoading
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <MapPin className="h-4 w-4" />
+                    }
+                    {locationLoading ? 'Đang lấy vị trí...' : 'Lấy vị trí tự động'}
+                  </Button>
+                  <Button type="button" variant="outline" className="flex-1" onClick={handleManualMode}>
+                    Nhập tay
+                  </Button>
+                </div>
+              )}
+              {locationMode !== '' && (
+                <div className="space-y-1">
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={address}
+                      onChange={e => { setAddress(e.target.value); setLocationMode('manual') }}
+                      placeholder="Số nhà, tên đường, thôn/xóm..."
+                      className="pl-9"
+                    />
+                  </div>
+                  {coords && (
+                    <p className="text-xs text-muted-foreground">
+                      GPS: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground underline"
+                    onClick={() => { setLocationMode(''); setAddress(''); setCoords(null) }}
+                  >
+                    Xoá địa chỉ
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

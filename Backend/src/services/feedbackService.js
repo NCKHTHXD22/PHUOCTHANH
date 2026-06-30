@@ -22,15 +22,20 @@ function isFeedbackTrigger(text) {
 }
 
 // Tạo phản ánh + báo nhóm Zalo + xác nhận cho người gửi — dùng chung cho form web
-async function createFeedbackEntry({ userId, displayName, contact, content, categoryId, categoryName, categoryGroupId, imageUrls = [] }) {
+async function createFeedbackEntry({ userId, displayName, contact, content, categoryId, categoryName, categoryGroupId, imageUrls = [], location = {} }) {
   const deadline = new Date();
-  deadline.setDate(deadline.getDate() + 3);
+  deadline.setDate(deadline.getDate() + 5);
 
   const feedback = await Feedback.create({
     userId,
     displayName,
     contact,
     content,
+    location: {
+      address: location.address || '',
+      lat: location.lat || null,
+      lng: location.lng || null,
+    },
     imageUrl: imageUrls[0] || '',
     imageUrls,
     categoryId: categoryId || null,
@@ -54,6 +59,9 @@ async function createFeedbackEntry({ userId, displayName, contact, content, cate
   const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   const nameInfo = displayName ? `👤 Tên: ${displayName}\n` : '';
   const catInfo = categoryName ? `🏷️ Loại: ${categoryName}\n` : '';
+  const locationInfo = location.address
+    ? `📍 Địa chỉ: ${location.address}\n`
+    : '';
   const imageInfo = imageUrls.length > 0
     ? `🖼️ ${imageUrls.length} ảnh:\n${imageUrls.map((u, i) => `  ${i + 1}. ${u}`).join('\n')}`
     : '🖼️ Ảnh: Không có';
@@ -64,6 +72,7 @@ async function createFeedbackEntry({ userId, displayName, contact, content, cate
     `${nameInfo}` +
     `📞 Liên hệ: ${contact}\n` +
     `${catInfo}` +
+    `${locationInfo}` +
     `📝 Nội dung:\n${content}\n` +
     `${imageInfo}\n` +
     `🆔 Mã: #${shortCode}`;
