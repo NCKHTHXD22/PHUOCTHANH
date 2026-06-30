@@ -45,12 +45,12 @@ export default function AppLayout() {
         {/* Header */}
         <header
           className="relative shrink-0 overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 40%, #b91c1c 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 40%, #0ea5e9 100%)' }}
         >
           {/* Decorative blobs */}
           <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-yellow-400/5" />
           <div className="pointer-events-none absolute bottom-0 right-32 h-32 w-32 rounded-full bg-white/4" />
-          <div className="pointer-events-none absolute -bottom-6 left-1/3 h-20 w-20 rounded-full bg-red-300/8" />
+          <div className="pointer-events-none absolute -bottom-6 left-1/3 h-20 w-20 rounded-full bg-blue-300/8" />
 
           <div className="relative px-6 py-4 flex items-center justify-between gap-4">
             {/* Left: logo + greeting + page title */}
@@ -65,9 +65,9 @@ export default function AppLayout() {
               </div>
               <div className="min-w-0">
                 <h1 className="text-white font-bold text-base leading-tight">
-                  {getHourGreeting()}, <span className="text-red-200">{user?.fullName?.split(' ').pop() ?? 'Admin'}</span>!
+                  {getHourGreeting()}, <span className="text-blue-200">{user?.fullName?.split(' ').pop() ?? 'Admin'}</span>!
                 </h1>
-                <p className="text-red-200/70 text-xs mt-0.5 truncate">{page.subtitle}</p>
+                <p className="text-blue-200/70 text-xs mt-0.5 truncate">{page.subtitle}</p>
               </div>
             </div>
 
@@ -86,17 +86,17 @@ export default function AppLayout() {
               {/* Bell */}
               <button className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 border border-white/20 hover:bg-white/25 transition-all">
                 <Bell className="h-4 w-4 text-white" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-yellow-400 ring-1 ring-red-700" />
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-yellow-400 ring-1 ring-blue-700" />
               </button>
 
               {/* User chip */}
               <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 px-3 py-1.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400/40 to-red-300/20 text-white text-xs font-bold border border-white/20">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400/40 to-blue-300/20 text-white text-xs font-bold border border-white/20">
                   {user?.fullName?.[0]?.toUpperCase() ?? 'A'}
                 </div>
                 <div className="hidden sm:block leading-tight">
                   <p className="text-white text-xs font-semibold">{user?.fullName}</p>
-                  <p className="text-red-200/70 text-[10px]">
+                  <p className="text-blue-200/70 text-[10px]">
                     {user?.role === 'superadmin' ? 'Quản trị viên' : 'Cán bộ'}
                   </p>
                 </div>

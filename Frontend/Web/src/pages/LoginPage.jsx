@@ -313,7 +313,7 @@ export default function LoginPage() {
 
     const pinIcon = L.divIcon({
       className: 'phuocthanh-pin',
-      html: '<div style="width:22px;height:22px;background:#dc2626;border:2.5px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 7px rgba(0,0,0,0.45);"></div>',
+      html: '<div style="width:22px;height:22px;background:#2563eb;border:2.5px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 7px rgba(0,0,0,0.45);"></div>',
       iconSize: [22, 22], iconAnchor: [11, 22],
     })
     L.marker([LAT, LNG], { icon: pinIcon, interactive: false }).addTo(map)
@@ -332,7 +332,7 @@ export default function LoginPage() {
         const geom = d.features[0].geometry
         if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) return
         const layer = L.geoJSON(geom, {
-          style: { color: '#dc2626', weight: 3, dashArray: '7 6', fillColor: '#dc2626', fillOpacity: 0.05, lineJoin: 'round' },
+          style: { color: '#2563eb', weight: 3, dashArray: '7 6', fillColor: '#2563eb', fillOpacity: 0.05, lineJoin: 'round' },
         }).addTo(map)
         try { map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 14 }) } catch { /* noop */ }
       })
@@ -467,7 +467,7 @@ export default function LoginPage() {
                 <ArrowLeft size={13} /> Quay lại đăng nhập
               </button>
               <div className="login-mode-icon" style={{ background: '#fef2f2' }}>
-                <KeyRound size={22} color="#dc2626" />
+                <KeyRound size={22} color="#2563eb" />
               </div>
               <div className="login-card-title">Quên mật khẩu</div>
               <div className="login-card-sub">Nhập tên đăng nhập. Hệ thống sẽ gửi mã OTP 6 số qua Zalo của bạn.</div>

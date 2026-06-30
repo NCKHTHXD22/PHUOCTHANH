@@ -12,7 +12,7 @@ import StatusBadge from '@/components/feedback/StatusBadge'
 import { formatDateShort } from '@/lib/utils'
 
 const QUICK_ACTIONS = [
-  { to: '/feedbacks',          label: 'Góp ý & Phản ánh', icon: MessageSquare, color: '#dc2626', light: 'linear-gradient(135deg,#fee2e2,#fecaca)' },
+  { to: '/feedbacks',          label: 'Góp ý & Phản ánh', icon: MessageSquare, color: '#2563eb', light: 'linear-gradient(135deg,#dbeafe,#bfdbfe)' },
   { to: '/messages',           label: 'Gửi tin Zalo',      icon: Send,          color: '#0891b2', light: 'linear-gradient(135deg,#cffafe,#a5f3fc)' },
   { to: '/settings',           label: 'Cài đặt nhóm',      icon: Settings,      color: '#7c3aed', light: 'linear-gradient(135deg,#ede9fe,#ddd6fe)' },
   { to: '/users',              label: 'Tài khoản Admin',   icon: Users,         color: '#ea580c', light: 'linear-gradient(135deg,#ffedd5,#fed7aa)' },
@@ -75,7 +75,7 @@ const ChartTooltip = ({ active, payload, label }) => {
     return (
       <div className="rounded-xl bg-white shadow-lg border border-slate-100 px-4 py-3 text-sm">
         <p className="font-semibold text-slate-700">{label}</p>
-        <p className="text-red-600 font-bold mt-0.5">{payload[0].value} góp ý</p>
+        <p className="text-blue-600 font-bold mt-0.5">{payload[0].value} góp ý</p>
       </div>
     )
   }
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         <button
           onClick={() => refetch()}
           disabled={isLoading}
-          className="p-2.5 rounded-xl border border-slate-200 bg-white text-red-600 hover:shadow-md hover:shadow-red-500/15 transition-all disabled:opacity-50"
+          className="p-2.5 rounded-xl border border-slate-200 bg-white text-blue-600 hover:shadow-md hover:shadow-blue-500/15 transition-all disabled:opacity-50"
           title="Làm mới dữ liệu"
         >
           <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
@@ -130,25 +130,25 @@ export default function DashboardPage() {
       <div className="relative rounded-3xl overflow-hidden px-9 py-8 shadow-xl shadow-slate-200/70 bg-white border border-slate-100">
         {/* Glow blobs */}
         <div className="absolute -top-24 right-16 w-80 h-80 rounded-full pointer-events-none"
-             style={{ background: 'radial-gradient(circle,rgba(220,38,38,.20),transparent 65%)', animation: 'heroGlow 9s ease-in-out infinite' }} />
+             style={{ background: 'radial-gradient(circle,rgba(37, 99, 235,.20),transparent 65%)', animation: 'heroGlow 9s ease-in-out infinite' }} />
         <div className="absolute -bottom-28 -right-10 w-72 h-72 rounded-full pointer-events-none"
              style={{ background: 'radial-gradient(circle,rgba(234,88,12,.18),transparent 68%)', animation: 'heroGlow2 11s ease-in-out infinite' }} />
         <div className="absolute -top-16 left-1/3 w-64 h-64 rounded-full pointer-events-none"
              style={{ background: 'radial-gradient(circle,rgba(251,191,36,.18),transparent 70%)', animation: 'heroGlow 13s ease-in-out infinite' }} />
         {/* Dot grid */}
         <div className="absolute inset-0 pointer-events-none opacity-50"
-             style={{ backgroundImage: 'radial-gradient(rgba(185,28,28,.06) 1px,transparent 1px)', backgroundSize: '22px 22px' }} />
+             style={{ backgroundImage: 'radial-gradient(rgba(37, 99, 235,.06) 1px,transparent 1px)', backgroundSize: '22px 22px' }} />
 
         <div className="relative z-10 flex items-end justify-between flex-wrap gap-7">
           <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 border border-red-100 text-[13px] font-semibold text-red-700">
-              <span className="w-2 h-2 rounded-full bg-red-500 ring-4 ring-red-500/20 animate-pulse-soft" />
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-[13px] font-semibold text-blue-700">
+              <span className="w-2 h-2 rounded-full bg-blue-500 ring-4 ring-blue-500/20 animate-pulse-soft" />
               Tổng góp ý & phản ánh đang quản lý
             </span>
             <div className="flex items-baseline gap-3.5 mt-3.5">
               <span
                 className="text-[5.5rem] font-black leading-[.85] tracking-tight"
-                style={{ background: 'linear-gradient(135deg,#dc2626,#ea580c,#d97706)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}
+                style={{ background: 'linear-gradient(135deg,#1d4ed8,#2563eb,#0ea5e9)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}
               >
                 {isLoading ? '…' : heroCount.toLocaleString('vi-VN')}
               </span>
@@ -195,8 +195,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiCard
           label="Tổng cộng" value={total} loading={isLoading}
-          icon={Inbox} color="#dc2626" light="linear-gradient(135deg,#fee2e2,#fecaca)"
-          footText="Toàn bộ góp ý & phản ánh" footColor="#dc2626" footIcon={ArrowUp}
+          icon={Inbox} color="#2563eb" light="linear-gradient(135deg,#dbeafe,#bfdbfe)"
+          footText="Toàn bộ góp ý & phản ánh" footColor="#2563eb" footIcon={ArrowUp}
         />
         <KpiCard
           label="Chờ xử lý" value={pending} loading={isLoading}
@@ -226,7 +226,7 @@ export default function DashboardPage() {
               <p className="text-xs text-slate-400 mt-0.5">Thống kê số lượng theo ngày</p>
             </div>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-              <span className="w-3 h-3 rounded-[3px]" style={{ background: 'linear-gradient(135deg,#f87171,#dc2626)' }} />
+              <span className="w-3 h-3 rounded-[3px]" style={{ background: 'linear-gradient(135deg,#60a5fa,#2563eb)' }} />
               Số góp ý
             </div>
           </div>
@@ -240,14 +240,14 @@ export default function DashboardPage() {
               <BarChart data={chartData} barGap={10} barCategoryGap="32%" margin={{ top: 24, right: 8, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="barRed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f87171" />
-                    <stop offset="100%" stopColor="#b91c1c" />
+                    <stop offset="0%" stopColor="#60a5fa" />
+                    <stop offset="100%" stopColor="#1d4ed8" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="4 4" stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 13, fontWeight: 600, fill: '#475569' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={36} allowDecimals={false} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(220,38,38,0.06)', radius: 6 }} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(37, 99, 235,0.06)', radius: 6 }} />
                 <Bar dataKey="count" fill="url(#barRed)" radius={[8, 8, 0, 0]} maxBarSize={56} />
               </BarChart>
             </ResponsiveContainer>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-50">
             <p className="text-base font-bold text-slate-800">Góp ý mới nhất</p>
-            <Link to="/feedbacks" className="text-xs font-semibold text-red-600 hover:text-red-800 flex items-center gap-1 transition-colors">
+            <Link to="/feedbacks" className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
               Xem tất cả <ArrowUpRight size={13} />
             </Link>
           </div>
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                   <Link
                     key={fb._id}
                     to={`/feedbacks/${fb._id}`}
-                    className="flex items-start gap-3 px-5 py-3.5 hover:bg-red-50/50 transition-colors group"
+                    className="flex items-start gap-3 px-5 py-3.5 hover:bg-blue-50/50 transition-colors group"
                   >
                     {fb.avatar ? (
                       <img
@@ -293,12 +293,12 @@ export default function DashboardPage() {
                     ) : null}
                     <div
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white text-xs font-bold shadow-sm"
-                      style={{ background: 'linear-gradient(135deg,#dc2626,#b91c1c)', display: fb.avatar ? 'none' : 'flex' }}
+                      style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', display: fb.avatar ? 'none' : 'flex' }}
                     >
                       {initial}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate text-slate-700 group-hover:text-red-600 transition-colors">
+                      <p className="text-sm font-semibold truncate text-slate-700 group-hover:text-blue-600 transition-colors">
                         {fb.displayName || '(Ẩn danh)'}
                       </p>
                       <p className="text-[11px] text-slate-400 font-mono">{fb.contact}</p>
@@ -328,7 +328,7 @@ export default function DashboardPage() {
               { label: 'Chờ xử lý',  val: pending,    color: '#d97706', bg: 'linear-gradient(135deg,#fef3c7,#fde68a)', border: '#fde68a' },
               { label: 'Đang xử lý', val: processing, color: '#0891b2', bg: 'linear-gradient(135deg,#cffafe,#a5f3fc)', border: '#a5f3fc' },
               { label: 'Hoàn thành', val: done,       color: '#16a34a', bg: 'linear-gradient(135deg,#dcfce7,#bbf7d0)', border: '#bbf7d0' },
-              { label: 'Tổng cộng',  val: total,      color: '#dc2626', bg: 'linear-gradient(135deg,#fee2e2,#fecaca)', border: '#fecaca' },
+              { label: 'Tổng cộng',  val: total,      color: '#2563eb', bg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)', border: '#bfdbfe' },
             ].map(s => (
               <div key={s.label} className="rounded-xl p-4" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
                 <p className="text-xs font-semibold" style={{ color: s.color }}>{s.label}</p>

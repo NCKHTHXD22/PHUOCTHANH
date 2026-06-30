@@ -25,7 +25,7 @@ function NavItem({ to, icon: Icon, label, badge }) {
         cn(
           'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group',
           isActive
-            ? 'bg-gradient-to-r from-red-700 to-red-600 text-white shadow-md shadow-red-900/40'
+            ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/40'
             : 'text-slate-400 hover:bg-white/8 hover:text-white'
         )
       }
@@ -42,7 +42,7 @@ function NavItem({ to, icon: Icon, label, badge }) {
           {badge && (
             <span className={cn(
               'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-              isActive ? 'bg-white/20 text-white' : 'bg-red-700/60 text-red-200'
+              isActive ? 'bg-white/20 text-white' : 'bg-blue-700/60 text-blue-200'
             )}>
               {badge}
             </span>
@@ -59,12 +59,12 @@ export default function Sidebar() {
   return (
     <aside
       className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col"
-      style={{ background: 'linear-gradient(180deg, #1a0505 0%, #2d0808 35%, #3b0a0a 70%, #1f0606 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #0c1a42 0%, #16348a 35%, #1d4ed8 70%, #0c1a42 100%)' }}
     >
       {/* Decorative circles */}
-      <div className="pointer-events-none absolute -top-12 -left-12 h-40 w-40 rounded-full bg-red-600/10" />
+      <div className="pointer-events-none absolute -top-12 -left-12 h-40 w-40 rounded-full bg-blue-600/10" />
       <div className="pointer-events-none absolute top-32 -right-8 h-24 w-24 rounded-full bg-yellow-500/5" />
-      <div className="pointer-events-none absolute bottom-20 -left-8 h-32 w-32 rounded-full bg-red-800/10" />
+      <div className="pointer-events-none absolute bottom-20 -left-8 h-32 w-32 rounded-full bg-blue-800/10" />
 
       {/* Brand */}
       <div className="relative flex items-center gap-3 px-4 py-4 border-b border-white/8">
@@ -78,7 +78,7 @@ export default function Sidebar() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-white text-sm font-bold leading-tight truncate">UBND Xã Phước Thành</p>
-          <p className="text-red-300/60 text-[11px] mt-0.5 truncate">Huyện Phước Sơn · Quảng Nam</p>
+          <p className="text-blue-300/60 text-[11px] mt-0.5 truncate">Huyện Phước Sơn · Quảng Nam</p>
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export default function Sidebar() {
       {/* User footer */}
       <div className="relative px-3 pb-4">
         <div className="flex items-center gap-3 rounded-2xl bg-white/6 border border-white/8 px-3 py-3 backdrop-blur">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-600 to-red-800 text-white text-sm font-bold shadow-md shadow-red-900/50 border border-red-500/30">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-white text-sm font-bold shadow-md shadow-blue-900/50 border border-blue-500/30">
             {user?.fullName?.[0]?.toUpperCase() ?? 'A'}
           </div>
           <div className="flex-1 min-w-0">
@@ -139,7 +139,7 @@ export default function Sidebar() {
           </div>
           <button
             onClick={() => logout()}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-white/35 hover:text-red-400 hover:bg-red-400/10 transition-all"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-white/35 hover:text-blue-400 hover:bg-blue-400/10 transition-all"
             title="Đăng xuất"
           >
             <LogOut className="h-3.5 w-3.5" />
