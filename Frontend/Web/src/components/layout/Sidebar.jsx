@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import logoImg from '@/images/LogoPhuocThanh.jpg'
+import logoImg from '@/images/Logophuoc_thanh.png'
 
 const GOOGLE_EARTH_URL =
   'https://earth.google.com/web/search/Ph%c6%b0%e1%bb%9bc+Th%c3%a0nh,+Qu%e1%ba%a3ng+Nam/@15.59613341,108.09926041,99.00898397a,270137.50901241d,35y,-0.54375817h,0.73241056t,0r/data=CosBGl0SVwolMHgzMTZhMjU5ZjhiNjYxNzE1OjB4ODY1NjkzN2I4NDNhNzIwNRn6q2zEOIguQCGCcjZ4uvpaQCocUGjGsOG7m2MgVGjDoG5oLCBRdeG6o25nIE5hbRgCIAEiJgokCSLPrhyETTBAEeg0N9tp2C9AGWawHp4rKFtAIZPh2hTP8lpAQgIIATIpCicKJQohMVlWeDRfc3VQTEVDMWJ5REZfMllZejhSQ0xNRW9kVmlTIAE6AwoBMEICCABKCAjQrLLGBBAB'
@@ -68,12 +68,11 @@ export default function Sidebar() {
 
       {/* Brand */}
       <div className="relative flex items-center gap-3 px-4 py-4 border-b border-white/8">
-        <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-yellow-400/15 blur-md" />
+        <div className="h-11 w-11 shrink-0 rounded-full overflow-hidden">
           <img
             src={logoImg}
             alt="Logo Phước Thành"
-            className="relative h-11 w-11 object-contain drop-shadow-lg"
+            className="h-full w-full object-cover"
           />
         </div>
         <div className="min-w-0 flex-1">

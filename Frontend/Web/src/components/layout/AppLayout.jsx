@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
 import Sidebar from './Sidebar'
-import logoImg from '@/images/LogoPhuocThanh.jpg'
+import logoImg from '@/images/Logophuoc_thanh.png'
 
 function timeAgo(date) {
   const diff = (Date.now() - new Date(date).getTime()) / 1000
