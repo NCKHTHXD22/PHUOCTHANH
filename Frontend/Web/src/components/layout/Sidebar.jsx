@@ -90,22 +90,26 @@ export default function Sidebar() {
         <NavItem to="/dashboard" icon={LayoutDashboard} label="Tổng quan" />
         <NavItem to="/feedbacks"  icon={MessageSquare}  label="Góp ý & Phản ánh" />
 
-        <div className="my-3 mx-2 border-t border-white/6" />
+        {user?.role !== 'officer' && (
+          <>
+            <div className="my-3 mx-2 border-t border-white/6" />
 
-        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-white/25 select-none">
-          Quản lý Zalo
-        </p>
+            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-white/25 select-none">
+              Quản lý Zalo
+            </p>
 
-        <NavItem to="/messages" icon={Send}     label="Gửi tin nhắn Zalo" />
-        <NavItem to="/settings" icon={Settings} label="Cài đặt nhóm Zalo" />
+            <NavItem to="/messages" icon={Send}     label="Gửi tin nhắn Zalo" />
+            <NavItem to="/settings" icon={Settings} label="Cài đặt nhóm Zalo" />
 
-        <div className="my-3 mx-2 border-t border-white/6" />
+            <div className="my-3 mx-2 border-t border-white/6" />
 
-        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-white/25 select-none">
-          Hệ thống
-        </p>
+            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-white/25 select-none">
+              Hệ thống
+            </p>
 
-        <NavItem to="/users" icon={Users} label="Tài khoản Admin" />
+            <NavItem to="/users" icon={Users} label="Tài khoản Admin" />
+          </>
+        )}
 
         {/* Google Earth link */}
         <a
