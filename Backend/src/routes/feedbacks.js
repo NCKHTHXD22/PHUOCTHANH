@@ -1,11 +1,15 @@
 const router = require('express').Router()
+const path = require('path')
+const multer = require('multer')
 const Feedback = require('../models/Feedback')
 const AdminUser = require('../models/AdminUser')
 const Category = require('../models/Category')
 const requireRole = require('../middleware/requireRole')
 const { sendZaloText, sendZaloToGroup } = require('../utils/zaloApi')
 const { getProfiles } = require('../services/profileCache')
+const { uploadBufferGeneric } = require('../utils/cloudinary')
 
+const memoryUpload = multer({ storage: multer.memoryStorage() })
 const LEADER_ROLES = ['superadmin', 'dept_leader']
 
 // GET / — danh sách
@@ -70,6 +74,8 @@ router.get('/:id', async (req, res) => {
       .populate('respondedBy', 'fullName')
       .populate('draftBy', 'fullName')
       .populate('approvedBy', 'fullName')
+      .populate('assignAttachments.sentBy', 'fullName')
+      .populate('draftAttachments.sentBy', 'fullName')
       .populate('categoryId', 'name icon zaloGroupId')
       .lean()
     if (!feedback) return res.status(404).json({ error: 'Không tìm thấy góp ý' })
@@ -117,13 +123,21 @@ router.delete('/:id', requireRole('superadmin'), async (req, res) => {
 // POST /:id/assign — phân công (superadmin, dept_leader)
 router.post('/:id/assign', requireRole('superadmin', 'dept_leader'), async (req, res) => {
   try {
-    const { assignedTo } = req.body
+    const { assignedTo, note, images, video, file } = req.body
     const feedback = await Feedback.findById(req.params.id).populate('categoryId', 'name zaloGroupId').lean()
     if (!feedback) return res.status(404).json({ error: 'Không tìm thấy góp ý' })
 
     await Feedback.findByIdAndUpdate(req.params.id, {
       assignedTo: assignedTo || null,
       assignedBy: req.user.id,
+      assignAttachments: {
+        note: note?.trim() || '',
+        images: images || [],
+        video: video?.url ? video : { url: '', name: '' },
+        file: file?.url ? file : { url: '', name: '' },
+        sentBy: req.user.id,
+        sentAt: new Date(),
+      },
       updatedAt: new Date(),
     })
 
@@ -190,7 +204,7 @@ router.post('/:id/assign', requireRole('superadmin', 'dept_leader'), async (req,
 // POST /:id/draft — cán bộ soạn dự thảo trả lời
 router.post('/:id/draft', requireRole('officer', 'staff'), async (req, res) => {
   try {
-    const { draftResponse } = req.body
+    const { draftResponse, note, images, video, file } = req.body
     if (!draftResponse?.trim()) return res.status(400).json({ error: 'Vui lòng nhập nội dung dự thảo' })
 
     const feedback = await Feedback.findById(req.params.id).populate('categoryId', 'name zaloGroupId').lean()
@@ -204,6 +218,14 @@ router.post('/:id/draft', requireRole('officer', 'staff'), async (req, res) => {
       draftBy: req.user.id,
       draftAt: new Date(),
       status: 'draft',
+      draftAttachments: {
+        note: note?.trim() || '',
+        images: images || [],
+        video: video?.url ? video : { url: '', name: '' },
+        file: file?.url ? file : { url: '', name: '' },
+        sentBy: req.user.id,
+        sentAt: new Date(),
+      },
       updatedAt: new Date(),
     })
 
@@ -329,6 +351,69 @@ router.post('/:id/reply', requireRole('superadmin', 'dept_leader'), async (req, 
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
+})
+
+// ── Upload đính kèm nội bộ (dùng cho tab Phân công & Xử lý) ──────────
+// POST /attachments/upload/image — tối đa 5 ảnh, 10MB/ảnh
+router.post('/attachments/upload/image', (req, res) => {
+  const upload = memoryUpload.array('images', 5)
+  upload(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    if (!req.files?.length) return res.status(400).json({ error: 'Không có file' })
+    if (req.files.some((f) => !f.mimetype.startsWith('image/'))) {
+      return res.status(400).json({ error: 'Chỉ nhận file ảnh' })
+    }
+    if (req.files.some((f) => f.size > 10 * 1024 * 1024)) {
+      return res.status(400).json({ error: 'Mỗi ảnh tối đa 10MB' })
+    }
+    try {
+      const images = await Promise.all(
+        req.files.map(async (f) => ({
+          url: await uploadBufferGeneric(f.buffer, `task_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, 'image'),
+          name: f.originalname,
+        }))
+      )
+      res.json({ ok: true, images })
+    } catch (e) {
+      res.status(500).json({ error: e.message })
+    }
+  })
+})
+
+// POST /attachments/upload/video — 1 video, tối đa 100MB
+router.post('/attachments/upload/video', (req, res) => {
+  const upload = memoryUpload.single('video')
+  upload(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    if (!req.file) return res.status(400).json({ error: 'Không có file video' })
+    if (req.file.size > 100 * 1024 * 1024) return res.status(400).json({ error: 'Video tối đa 100MB' })
+    try {
+      const url = await uploadBufferGeneric(req.file.buffer, `task_${Date.now()}`, 'video')
+      res.json({ ok: true, url, name: req.file.originalname })
+    } catch (e) {
+      res.status(500).json({ error: e.message })
+    }
+  })
+})
+
+// POST /attachments/upload/file — 1 file .docx/.pdf/.xlsx/.xls, tối đa 20MB
+router.post('/attachments/upload/file', (req, res) => {
+  const ALLOWED_EXT = ['.docx', '.pdf', '.xlsx', '.xls']
+  const upload = memoryUpload.single('file')
+  upload(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    if (!req.file) return res.status(400).json({ error: 'Không có file' })
+    const ext = path.extname(req.file.originalname).toLowerCase()
+    if (!ALLOWED_EXT.includes(ext)) return res.status(400).json({ error: 'Chỉ nhận file .docx, .pdf, .xlsx, .xls' })
+    if (req.file.size > 20 * 1024 * 1024) return res.status(400).json({ error: 'File tối đa 20MB' })
+    try {
+      const safeName = `task_${Date.now()}_${req.file.originalname.replace(/[^\w.-]/g, '_')}`
+      const url = await uploadBufferGeneric(req.file.buffer, safeName, 'raw')
+      res.json({ ok: true, url, name: req.file.originalname })
+    } catch (e) {
+      res.status(500).json({ error: e.message })
+    }
+  })
 })
 
 module.exports = router

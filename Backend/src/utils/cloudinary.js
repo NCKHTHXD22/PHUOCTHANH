@@ -47,4 +47,18 @@ async function uploadVideo(filePath) {
   return result.secure_url;
 }
 
-module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl, uploadVideo };
+// Upload buffer bất kỳ (image/video/raw) lên Cloudinary → trả secure_url
+async function uploadBufferGeneric(buffer, filename, resourceType = 'auto') {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'phuocthanh-goopy', resource_type: resourceType, public_id: filename },
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
+}
+
+module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl, uploadVideo, uploadBufferGeneric };
