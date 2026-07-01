@@ -48,14 +48,15 @@ router.get('/', async (req, res) => {
       Feedback.countDocuments(filter),
     ])
 
-    // Enrich displayName từ Redis profile cache cho những feedback chưa có tên
-    const missing = feedbacks.filter((f) => !f.displayName && f.userId).map((f) => f.userId)
-    if (missing.length) {
-      const profiles = await getProfiles(missing)
+    // Enrich tên + avatar từ Redis profile cache
+    const userIds = [...new Set(feedbacks.filter((f) => f.userId).map((f) => f.userId))]
+    if (userIds.length) {
+      const profiles = await getProfiles(userIds)
       feedbacks.forEach((f) => {
-        if (!f.displayName && f.userId && profiles[f.userId]?.display_name) {
-          f.displayName = profiles[f.userId].display_name
-        }
+        const p = f.userId && profiles[f.userId]
+        if (!p) return
+        if (!f.displayName && p.display_name) f.displayName = p.display_name
+        if (p.avatar) f.avatar = p.avatar
       })
     }
 

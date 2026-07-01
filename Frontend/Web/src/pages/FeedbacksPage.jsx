@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Search, ChevronLeft, ChevronRight, Loader2, Filter, Eye, Inbox } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import StatusBadge from '@/components/feedback/StatusBadge'
-import { formatDateShort } from '@/lib/utils'
+import { formatDateShort, getAvatarColor } from '@/lib/utils'
 
 const STATUS_OPTIONS = [
   { value: '',         label: 'Tất cả trạng thái' },
@@ -28,7 +28,13 @@ function SelectField({ value, onChange, children }) {
 
 export default function FeedbacksPage() {
   const { user } = useAuth()
-  const [filter, setFilter] = useState({ status: '', assignedTo: '', categoryId: '', q: '' })
+  const [searchParams] = useSearchParams()
+  const [filter, setFilter] = useState({
+    status: searchParams.get('status') || '',
+    assignedTo: '',
+    categoryId: '',
+    q: searchParams.get('q') || '',
+  })
   const [page, setPage] = useState(1)
 
   const { data, isLoading } = useQuery({
@@ -139,7 +145,7 @@ export default function FeedbacksPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: 'linear-gradient(135deg, #1d4ed8, #0ea5e9)' }}>
-                  <th className="text-left px-4 py-3.5 text-[11px] font-bold uppercase tracking-wider text-white/80 w-10">#</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-bold uppercase tracking-wider text-white/80 w-20">Mã hồ sơ</th>
                   <th className="text-left px-4 py-3.5 text-[11px] font-bold uppercase tracking-wider text-white/80">Người gửi</th>
                   <th className="text-left px-4 py-3.5 text-[11px] font-bold uppercase tracking-wider text-white/80">Nội dung</th>
                   <th className="text-left px-4 py-3.5 text-[11px] font-bold uppercase tracking-wider text-white/80 w-28">Trạng thái</th>
@@ -154,12 +160,23 @@ export default function FeedbacksPage() {
               <tbody className="divide-y divide-slate-50">
                 {feedbacks.map((fb, i) => (
                   <tr key={fb._id} className="hover:bg-blue-50/40 transition-colors group">
-                    <td className="px-4 py-3.5 text-slate-300 text-xs font-mono">
-                      {(page - 1) * 20 + i + 1}
+                    <td className="px-4 py-3.5 text-xs font-mono font-semibold text-blue-600">
+                      #{fb._id.slice(-5).toUpperCase()}
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white text-xs font-bold shadow-sm">
+                        {fb.avatar ? (
+                          <img
+                            src={fb.avatar}
+                            alt=""
+                            className="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm"
+                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                          />
+                        ) : null}
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${getAvatarColor(fb.userId || fb.displayName || fb.contact || '?')} text-white text-xs font-bold shadow-sm`}
+                          style={{ display: fb.avatar ? 'none' : 'flex' }}
+                        >
                           {(fb.displayName || fb.contact || '?')[0].toUpperCase()}
                         </div>
                         <div className="min-w-0">
