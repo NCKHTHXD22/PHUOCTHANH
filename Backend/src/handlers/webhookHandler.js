@@ -28,7 +28,7 @@ const userStates = new Map();
 // Cache danh sách phản ánh khi user đang chọn
 const userFeedbackCache = new Map();
 
-const NUM_EMOJI = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'];
+const NUM_EMOJI = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
 function feedbackStatusLabel(fb) {
   if (fb.status === 'done' || fb.status === 'resolved') return '✅ Đã xử lý xong';
@@ -325,9 +325,16 @@ async function handleWebhook(body) {
     // ── Theo dõi phản ánh (#theodoigoopy) ──────────────────
     if (lower === '#theodoigoopy' || lower.includes('theodoigoopy') || lower.includes('theo dõi phản ánh')) {
       try {
-        const userFeedbacks = await Feedback.find({ userId })
+        // Gom mọi phản ánh của người này: khớp userId HOẶC cùng SĐT/email
+        // (Zalo có thể cấp user_id khác nhau mỗi lần gửi qua Mini App)
+        const byUser = await Feedback.find({ userId }, 'contact').lean();
+        const contacts = [...new Set(byUser.map((f) => f.contact).filter(Boolean))];
+        const query = contacts.length
+          ? { $or: [{ userId }, { contact: { $in: contacts } }] }
+          : { userId };
+        const userFeedbacks = await Feedback.find(query)
           .sort({ createdAt: -1 })
-          .limit(5)
+          .limit(10)
           .populate('categoryId', 'name')
           .lean();
 
