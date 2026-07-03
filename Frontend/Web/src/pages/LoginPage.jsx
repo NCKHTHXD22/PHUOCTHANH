@@ -11,9 +11,9 @@ import { toast } from 'sonner'
 import logoImg from '@/images/Logophuoc_thanh.png'
 import '@/styles/login.css'
 
-// Tọa độ UBND Xã Phước Thành, Quảng Nam
-const LAT = 15.59613341
-const LNG = 108.09926041
+// Tọa độ trung tâm Xã Phước Thành, Thành phố Đà Nẵng
+const LAT = 15.3142295
+const LNG = 107.8864368
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -323,7 +323,7 @@ export default function LoginPage() {
 
   function loadBoundary(map) {
     const url = 'https://nominatim.openstreetmap.org/search?format=geojson&polygon_geojson=1&limit=1&q=' +
-      encodeURIComponent('Xã Phước Thành, Quảng Nam, Việt Nam')
+      encodeURIComponent('Xã Phước Thành, Đà Nẵng')
     fetch(url, { headers: { Accept: 'application/json' } })
       .then((res) => res.json())
       .then((d) => {

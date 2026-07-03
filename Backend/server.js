@@ -193,6 +193,12 @@ require('./src/services/schedulerService').start();
 // ── Nhắc lịch xử lý hồ sơ trước 1 ngày đến khi hết hạn ──
 require('./src/services/deadlineReminderService').startDeadlineReminder();
 
+// ── Đồng bộ lịch cắt điện EVNCPC (mỗi 30 phút) ──────────
+require('./src/services/catDienService').startAutoSync();
+
+// ── Đồng bộ văn bản hành chính (mỗi ngày 3h sáng) ───────
+require('./src/services/vanBanHanhChinhService').startAutoSync();
+
 // ── REST API cho React frontend ────────────────────────
 const apiRouter = require('./src/routes/index');
 app.use('/api', apiRouter);

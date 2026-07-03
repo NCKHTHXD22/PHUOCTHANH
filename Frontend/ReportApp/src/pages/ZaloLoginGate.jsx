@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import BlobBackground from '@/components/BlobBackground'
 import { buildZaloLoginUrl, api } from '@/lib/api'
+
+const ACCENT = 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#d946ef 74%,#fb7185 100%)'
 
 const RED_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">
   <path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24S24 21 24 12C24 5.37 18.63 0 12 0z" fill="#ef4444"/>
@@ -58,7 +62,7 @@ function ComplaintMap({ points }) {
     // Lớp ranh giới xã Phước Thành — thêm sau khi đã có center từ marker
     fetch(
       'https://nominatim.openstreetmap.org/search.php' +
-      '?q=X%C3%A3+Ph%C6%B0%E1%BB%9Bc+Th%C3%A0nh%2C+%C4%90%E1%BA%A1i+L%E1%BB%99c%2C+Qu%E1%BA%A3ng+Nam' +
+      '?q=' + encodeURIComponent('Xã Phước Thành, Đà Nẵng') +
       '&format=geojson&polygon_geojson=1&limit=1',
       { headers: { 'User-Agent': 'UBND-PhuocThanh-GoiY/1.0' } }
     )
@@ -107,24 +111,34 @@ export default function ZaloLoginGate({ loading, error }) {
   const showMap = leafletReady && mapPoints !== null && mapPoints.length > 0
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-start bg-background p-4 gap-4 pt-6">
-      <Card className="w-full max-w-sm animate-fade-in">
-        <CardHeader className="text-center">
-          <CardTitle className="gradient-text text-xl">UBND Xã Phước Thành</CardTitle>
-          <p className="text-sm text-muted-foreground">Góp ý - Phản ánh</p>
-        </CardHeader>
-        <CardContent className="space-y-4 text-center">
+    <BlobBackground className="flex flex-col items-center justify-start p-4 gap-4 pt-6">
+      <div
+        className="relative overflow-hidden w-full max-w-sm rounded-[24px] px-5 py-6 text-center text-white animate-fade-in"
+        style={{ background: ACCENT, boxShadow: '0 20px 44px -16px rgba(139,92,246,0.55)' }}
+      >
+        <span aria-hidden="true" className="absolute top-0 left-0 w-[55%] h-full pointer-events-none animate-sheen" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)' }} />
+        <div className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10.5px] font-bold tracking-[1.5px] uppercase mb-3" style={{ background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(4px)' }}>
+          <Sparkles className="h-3 w-3" /> Chuyển đổi số
+        </div>
+        <div className="relative text-xl font-extrabold tracking-tight">UBND Xã Phước Thành</div>
+        <p className="relative text-sm text-white/85 mt-1">Góp ý - Phản ánh</p>
+      </div>
+
+      <Card className="w-full max-w-sm animate-fade-in" style={{ boxShadow: '0 18px 46px -22px rgba(90,70,170,0.42)' }}>
+        <CardContent className="space-y-4 text-center pt-6">
           <p className="text-sm text-muted-foreground">
             Vui lòng đăng nhập bằng Zalo để gửi góp ý / phản ánh. Cán bộ sẽ phản hồi trực tiếp qua Zalo của bạn.
           </p>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button
-            className="w-full"
+            className="relative overflow-hidden w-full"
             size="lg"
             disabled={loading}
             onClick={() => { window.location.href = buildZaloLoginUrl() }}
+            style={{ background: ACCENT, boxShadow: '0 16px 32px -14px rgba(139,92,246,0.55)' }}
           >
-            {loading ? 'Đang xử lý...' : 'Đăng nhập bằng Zalo'}
+            {!loading && <span aria-hidden="true" className="absolute top-0 left-0 w-[55%] h-full pointer-events-none animate-sheen" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }} />}
+            <span className="relative">{loading ? 'Đang xử lý...' : 'Đăng nhập bằng Zalo'}</span>
           </Button>
         </CardContent>
       </Card>
@@ -144,6 +158,6 @@ export default function ZaloLoginGate({ loading, error }) {
           <ComplaintMap points={mapPoints} />
         </div>
       )}
-    </div>
+    </BlobBackground>
   )
 }

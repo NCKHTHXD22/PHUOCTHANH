@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, MapPin, Loader2, Send } from 'lucide-react'
+import { X, MapPin, Loader2, Send, Pencil, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import BlobBackground from '@/components/BlobBackground'
 import { api } from '@/lib/api'
+
+const ACCENT = 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#d946ef 74%,#fb7185 100%)'
 
 const MAX_IMAGES = 5
 const MAX_SIZE = 5 * 1024 * 1024
@@ -160,19 +163,28 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <Card className="mx-auto max-w-md animate-fade-in">
-        <CardHeader>
-          <div className="flex items-center gap-2.5">
-            <img src="/LogoPhuocThanh.jpg" alt="Phước Thành" className="h-9 w-9 shrink-0 rounded-md object-contain" />
-            <CardTitle className="text-lg font-bold text-foreground">Gửi góp ý - Phản ánh</CardTitle>
+    <BlobBackground className="p-4">
+      <div className="relative overflow-hidden mx-auto max-w-md rounded-[24px] px-5 pt-5 pb-[22px] text-white animate-fade-in mb-4" style={{ background: ACCENT, boxShadow: '0 20px 44px -16px rgba(139,92,246,0.55)' }}>
+        <span aria-hidden="true" className="absolute top-0 left-0 w-[55%] h-full pointer-events-none animate-sheen" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)' }} />
+        <div className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10.5px] font-bold tracking-[1.5px] uppercase" style={{ background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(4px)' }}>
+          <Sparkles className="h-3 w-3" /> Chuyển đổi số
+        </div>
+        <div className="relative flex items-center gap-[13px] mt-[15px]">
+          <div className="w-12 h-12 shrink-0 rounded-[14px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.9)', boxShadow: '0 6px 16px -6px rgba(0,0,0,0.35)' }}>
+            <img src="/LogoPhuocThanh.jpg" alt="Phước Thành" className="w-12 h-12 object-cover" />
           </div>
-          <div className="flex items-center gap-2 pt-1">
-            {profile.avatar && <img src={profile.avatar} alt="" className="h-8 w-8 rounded-full" />}
-            <span className="text-sm text-muted-foreground">Xin chào, {profile.name || 'bạn'}</span>
+          <div className="min-w-0">
+            <div className="font-extrabold text-xl leading-tight tracking-tight">Gửi góp ý - Phản ánh</div>
+            <div className="flex items-center gap-2 mt-1 text-sm text-white/85">
+              {profile.avatar && <img src={profile.avatar} alt="" className="h-6 w-6 rounded-full" />}
+              <span>Xin chào, {profile.name || 'bạn'}</span>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+      </div>
+
+      <Card className="mx-auto max-w-md animate-fade-in" style={{ boxShadow: '0 18px 46px -22px rgba(90,70,170,0.42)' }}>
+        <CardContent className="pt-6">
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label>Loại phản ánh</Label>
@@ -187,8 +199,8 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contact">Số điện thoại / Email liên hệ</Label>
-              <Input id="contact" value={contact} onChange={e => setContact(e.target.value)} placeholder="0912345678" required />
+              <Label htmlFor="contact">Số điện thoại</Label>
+              <Input id="contact" value={contact} onChange={e => setContact(e.target.value)} placeholder="Vui lòng nhập số điện thoại" required />
             </div>
 
             <div className="space-y-2">
@@ -214,7 +226,8 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
                     }
                     {locationLoading ? 'Đang lấy vị trí...' : 'Lấy vị trí tự động'}
                   </Button>
-                  <Button type="button" variant="outline" className="flex-1" onClick={handleManualMode}>
+                  <Button type="button" variant="outline" className="flex-1 gap-2" onClick={handleManualMode}>
+                    <Pencil className="h-4 w-4" />
                     Nhập địa chỉ
                   </Button>
                 </div>
@@ -272,16 +285,25 @@ export default function FeedbackForm({ profile, accessToken, onSuccess }) {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" className="group w-full gap-2" size="lg" disabled={submitting}>
-              {submitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Đang gửi...</>
-              ) : (
-                <><Send className="h-4 w-4 animate-plane" /> Gửi phản ánh</>
-              )}
+            <Button
+              type="submit"
+              className="relative overflow-hidden group w-full gap-2"
+              size="lg"
+              disabled={submitting}
+              style={{ background: ACCENT, boxShadow: '0 16px 32px -14px rgba(139,92,246,0.55)' }}
+            >
+              {!submitting && <span aria-hidden="true" className="absolute top-0 left-0 w-[55%] h-full pointer-events-none animate-sheen" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }} />}
+              <span className="relative inline-flex items-center gap-2">
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Đang gửi...</>
+                ) : (
+                  <><Send className="h-4 w-4 animate-plane" /> Gửi phản ánh</>
+                )}
+              </span>
             </Button>
           </form>
         </CardContent>
       </Card>
-    </div>
+    </BlobBackground>
   )
 }

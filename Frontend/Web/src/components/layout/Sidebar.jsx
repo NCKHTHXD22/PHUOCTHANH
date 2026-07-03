@@ -1,14 +1,14 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, MessageSquare, Users, LogOut,
-  Settings, Send, Globe,
+  Settings, Send, Globe, Wallet,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import logoImg from '@/images/Logophuoc_thanh.png'
 
 const GOOGLE_EARTH_URL =
-  'https://earth.google.com/web/search/Ph%c6%b0%e1%bb%9bc+Th%c3%a0nh,+Qu%e1%ba%a3ng+Nam/@15.59613341,108.09926041,99.00898397a,270137.50901241d,35y,-0.54375817h,0.73241056t,0r/data=CosBGl0SVwolMHgzMTZhMjU5ZjhiNjYxNzE1OjB4ODY1NjkzN2I4NDNhNzIwNRn6q2zEOIguQCGCcjZ4uvpaQCocUGjGsOG7m2MgVGjDoG5oLCBRdeG6o25nIE5hbRgCIAEiJgokCSLPrhyETTBAEeg0N9tp2C9AGWawHp4rKFtAIZPh2hTP8lpAQgIIATIpCicKJQohMVlWeDRfc3VQTEVDMWJ5REZfMllZejhSQ0xNRW9kVmlTIAE6AwoBMEICCABKCAjQrLLGBBAB'
+  'https://earth.google.com/web/search/' + encodeURIComponent('Xã Phước Thành, Đà Nẵng')
 
 const ROLE_LABELS = {
   superadmin:  'Cán bộ quản trị',
@@ -89,6 +89,7 @@ export default function Sidebar() {
 
         <NavItem to="/dashboard" icon={LayoutDashboard} label="Tổng quan" />
         <NavItem to="/feedbacks"  icon={MessageSquare}  label="Góp ý & Phản ánh" />
+        <NavItem to="/tro-cap"    icon={Wallet}          label="Lịch chi trả trợ cấp" />
 
         {user?.role !== 'officer' && (
           <>

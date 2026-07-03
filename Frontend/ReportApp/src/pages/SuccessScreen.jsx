@@ -1,4 +1,7 @@
 import { Button } from '@/components/ui/button'
+import BlobBackground from '@/components/BlobBackground'
+
+const ACCENT = 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#d946ef 74%,#fb7185 100%)'
 
 const ROW_DEFS = [
   { key: 'code',         label: 'Mã phản ánh',  prefix: '#', bold: true, color: 'text-primary' },
@@ -13,7 +16,7 @@ export default function SuccessScreen({ info = {}, onReset }) {
   const { code, contact, categoryName, content, address, imageCount } = info
 
   return (
-    <div className="min-h-screen bg-background flex items-start justify-center p-4 pt-8">
+    <BlobBackground className="flex items-start justify-center p-4 pt-8">
       <div className="w-full max-w-sm animate-fade-in space-y-4">
 
         {/* Header xác nhận */}
@@ -50,16 +53,22 @@ export default function SuccessScreen({ info = {}, onReset }) {
         </div>
 
         {/* Lời cảm ơn */}
-        <div className="rounded-2xl bg-blue-50 border border-blue-100 px-4 py-3 text-center">
-          <p className="text-sm text-blue-700 font-medium">
+        <div className="rounded-2xl px-4 py-3 text-center" style={{ background: '#f1ecfe', border: '1px solid rgba(139,92,246,0.18)' }}>
+          <p className="text-sm font-medium" style={{ color: '#7c3aed' }}>
             🙏 Cảm ơn bạn đã tin tưởng gởi phản ánh tới UBND Xã Phước Thành!
           </p>
         </div>
 
-        <Button className="w-full" size="lg" onClick={onReset}>
-          Gửi phản ánh khác
+        <Button
+          className="relative overflow-hidden w-full"
+          size="lg"
+          onClick={onReset}
+          style={{ background: ACCENT, boxShadow: '0 16px 32px -14px rgba(139,92,246,0.55)' }}
+        >
+          <span aria-hidden="true" className="absolute top-0 left-0 w-[55%] h-full pointer-events-none animate-sheen" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }} />
+          <span className="relative">Gửi phản ánh khác</span>
         </Button>
       </div>
-    </div>
+    </BlobBackground>
   )
 }

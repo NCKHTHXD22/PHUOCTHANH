@@ -24,4 +24,10 @@ module.exports = {
   // ===== DAWACO Proxy (Lịch cắt nước Đà Nẵng) =====
   DAWACO_PROXY_URL: process.env.DAWACO_PROXY_URL || 'http://103.107.182.191:3456',
   DAWACO_PROXY_KEY: process.env.DAWACO_PROXY_KEY || 'zalo2025secret',
+
+  // ===== EVNCPC (Lịch cắt điện) =====
+  EVNCPC_API_URL: process.env.EVNCPC_API_URL || 'https://cskh-api.cpc.vn/api/remote/outages/area',
+  EVNCPC_ORG_LIST_URL: process.env.EVNCPC_ORG_LIST_URL || 'https://cskh-api.cpc.vn/api/remote/organizations',
+  EVNCPC_ORG_CODE: process.env.EVNCPC_ORG_CODE || 'PP',           // Công ty Điện lực Đà Nẵng (cào toàn bộ)
+  EVNCPC_SUBORG_CODE: process.env.EVNCPC_SUBORG_CODE || 'PC05HH', // mặc định lọc khi tra cứu: Điện lực Hiệp Đức (phụ trách Phước Thành)
 };
