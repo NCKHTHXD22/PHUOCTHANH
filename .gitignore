@@ -3,3 +3,5 @@ node_modules/
 *.log
 Backend/public/images/*
 !Backend/public/images/.gitkeep
+~$*
+*.tmp

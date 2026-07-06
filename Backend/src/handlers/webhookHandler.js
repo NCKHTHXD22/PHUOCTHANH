@@ -323,7 +323,7 @@ async function handleWebhook(body) {
     }
 
     // ── Theo dõi phản ánh (#theodoigoopy) ──────────────────
-    if (lower === '#theodoigoopy' || lower.includes('theodoigoopy') || lower.includes('theo dõi phản ánh')) {
+    if (lower === '#theodoi' || lower === '#theodoigoopy' || lower.includes('theodoigoopy') || lower.includes('theo dõi phản ánh')) {
       try {
         // Gom mọi phản ánh của người này: khớp userId HOẶC cùng SĐT/email
         // (Zalo có thể cấp user_id khác nhau mỗi lần gửi qua Mini App)

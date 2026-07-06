@@ -7,6 +7,10 @@ import ResultsList from '@/components/ResultsList'
 import { api } from '@/lib/api'
 
 function pad(n) { return String(n).padStart(2, '0') }
+function fmtDate(d) { return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}` }
+function isSameDay(a, b) {
+  return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
 
 const ACCENT = 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#d946ef 74%,#fb7185 100%)'
 const PAGE_BG = 'linear-gradient(180deg, #f3eefc 0%, #eff1fd 55%, #f6f0fb 100%)'
@@ -18,7 +22,8 @@ export default function App() {
   const [stations, setStations] = useState([])
   const [stationsLoading, setStationsLoading] = useState(true)
   const [selected, setSelected] = useState(new Set())
-  const [selectedDate, setSelectedDate] = useState(null)
+  const [dateFrom, setDateFrom] = useState(null)
+  const [dateTo, setDateTo] = useState(null)
   const [items, setItems] = useState([])
   const [searched, setSearched] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -44,6 +49,26 @@ export default function App() {
     setSelected((prev) => (prev.size === stations.length ? new Set() : new Set(stations)))
   }
 
+  // Chọn khoảng ngày: bấm lần 1 = mốc "từ", bấm lần 2 = mốc "đến" (tự hoán đổi nếu chọn ngược)
+  function handleSelectDay(day) {
+    if (!dateFrom || dateTo) {
+      setDateFrom(day)
+      setDateTo(null)
+    } else if (isSameDay(day, dateFrom)) {
+      setDateFrom(null)
+      setDateTo(null)
+    } else if (day < dateFrom) {
+      setDateFrom(day)
+    } else {
+      setDateTo(day)
+    }
+  }
+
+  function clearDateRange() {
+    setDateFrom(null)
+    setDateTo(null)
+  }
+
   async function handleSearch() {
     setSearching(true)
     setError('')
@@ -52,8 +77,9 @@ export default function App() {
       if (selected.size > 0 && selected.size < stations.length) {
         params.station = [...selected].join(',')
       }
-      if (selectedDate) {
-        params.date = `${pad(selectedDate.getDate())}/${pad(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`
+      if (dateFrom) {
+        params.dateFrom = fmtDate(dateFrom)
+        if (dateTo) params.dateTo = fmtDate(dateTo)
       }
       const res = await api.get('/search', { params })
       setItems(res.data.items || [])
@@ -84,7 +110,7 @@ export default function App() {
             </div>
             <div>
               <div className="font-extrabold text-xl leading-tight tracking-tight">Tra cứu lịch cắt điện</div>
-              <div className="mt-1 text-xs text-white/85">UBND xã Phước Thành · Nguồn: EVNCPC (Hiệp Đức)</div>
+              <div className="mt-1 text-xs text-white/85">UBND xã Phước Thành</div>
             </div>
           </div>
           <div className="relative flex flex-wrap gap-2 mt-[15px]">
@@ -104,12 +130,21 @@ export default function App() {
         />
 
         <div className="rounded-2xl border bg-card p-4" style={{ boxShadow: '0 18px 46px -22px rgba(90,70,170,0.42)' }}>
-          <p className="text-sm font-bold uppercase mb-3">Chọn thời gian</p>
-          <Calendar selectedDate={selectedDate} onSelect={setSelectedDate} />
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-bold uppercase">Chọn từ ngày – đến ngày</p>
+            {(dateFrom || dateTo) && (
+              <button type="button" onClick={clearDateRange} className="text-xs font-medium text-muted-foreground underline">
+                Xoá
+              </button>
+            )}
+          </div>
+          <Calendar rangeFrom={dateFrom} rangeTo={dateTo} onSelect={handleSelectDay} />
           <p className="text-xs text-muted-foreground mt-2">
-            {selectedDate
-              ? `Đã chọn ngày ${pad(selectedDate.getDate())}/${pad(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`
-              : 'Chưa chọn ngày — mặc định xem lịch sắp tới'}
+            {dateFrom && dateTo
+              ? `Đã chọn từ ${fmtDate(dateFrom)} đến ${fmtDate(dateTo)}`
+              : dateFrom
+                ? `Đã chọn ngày ${fmtDate(dateFrom)} — bấm thêm 1 ngày nữa để chọn khoảng`
+                : 'Chưa chọn ngày — mặc định xem lịch sắp tới'}
           </p>
         </div>
 

@@ -155,19 +155,32 @@ async function listStations(subOrgCode = CONFIG.EVNCPC_SUBORG_CODE) {
   return names.filter(Boolean).sort((a, b) => a.localeCompare(b, 'vi'));
 }
 
-// ─── Tra cứu kết hợp trạm (nhiều) + ngày cụ thể (phục vụ mini app CatDien) ───
-async function getOutagesByStations(stationNames = [], dateStr = '', subOrgCode = CONFIG.EVNCPC_SUBORG_CODE) {
+// "dd/mm" | "dd/mm/yyyy" → { d, m (0-based), y } | null
+function parseDmy(str) {
+  const m = (str || '').trim().match(/^(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}))?$/);
+  if (!m) return null;
+  const [, d, mo, y] = m;
+  return { d: parseInt(d), m: parseInt(mo) - 1, y: y ? parseInt(y) : new Date().getFullYear() };
+}
+
+// ─── Tra cứu kết hợp trạm (nhiều) + khoảng ngày (phục vụ mini app CatDien) ───
+// dateFrom/dateTo: "dd/MM" | "dd/MM/yyyy". Chỉ truyền dateFrom → tra đúng 1 ngày đó.
+async function getOutagesByStations(stationNames = [], dateFrom = '', dateTo = '', subOrgCode = CONFIG.EVNCPC_SUBORG_CODE) {
   const filter = {};
   if (subOrgCode && subOrgCode !== 'all') filter.subOrgCode = subOrgCode;
   if (stationNames.length) filter.stationName = { $in: stationNames };
 
-  const dateMatch = (dateStr || '').trim().match(/^(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}))?$/);
-  if (dateMatch) {
-    const [, d, m, y] = dateMatch;
-    const year = y ? parseInt(y) : new Date().getFullYear();
+  let from = parseDmy(dateFrom);
+  let to = parseDmy(dateTo) || from;
+  // Nếu người dùng chọn ngược (đến ngày trước từ ngày) → hoán đổi cho đúng thứ tự
+  if (from && to && new Date(from.y, from.m, from.d) > new Date(to.y, to.m, to.d)) {
+    [from, to] = [to, from];
+  }
+
+  if (from) {
     filter.fromDate = {
-      $gte: new Date(Date.UTC(year, parseInt(m) - 1, parseInt(d), -7, 0, 0, 0)),
-      $lte: new Date(Date.UTC(year, parseInt(m) - 1, parseInt(d), 16, 59, 59, 999)),
+      $gte: new Date(Date.UTC(from.y, from.m, from.d, -7, 0, 0, 0)),
+      $lte: new Date(Date.UTC(to.y, to.m, to.d, 16, 59, 59, 999)),
     };
   } else {
     const now = new Date();

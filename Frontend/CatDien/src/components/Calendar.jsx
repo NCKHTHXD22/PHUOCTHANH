@@ -18,7 +18,11 @@ function isSameDay(a, b) {
   return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-export default function Calendar({ selectedDate, onSelect }) {
+function startOfDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
+export default function Calendar({ rangeFrom, rangeTo, onSelect }) {
   const today = new Date()
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
 
@@ -65,17 +69,23 @@ export default function Calendar({ selectedDate, onSelect }) {
         {cells.map((d, i) => {
           if (d === null) return <span key={`empty-${i}`} />
           const cellDate = new Date(year, month, d)
-          const selected = isSameDay(cellDate, selectedDate)
+          const isFrom = isSameDay(cellDate, rangeFrom)
+          const isTo = isSameDay(cellDate, rangeTo)
+          const isEndpoint = isFrom || isTo
+          const inRange = rangeFrom && rangeTo && !isEndpoint
+            && startOfDay(cellDate) > startOfDay(rangeFrom) && startOfDay(cellDate) < startOfDay(rangeTo)
           const isToday = isSameDay(cellDate, today)
           return (
             <button
               type="button"
               key={d}
-              onClick={() => onSelect(selected ? null : cellDate)}
+              onClick={() => onSelect(cellDate)}
               className={cn(
                 'h-9 w-9 mx-auto rounded-full text-sm flex items-center justify-center transition-colors',
-                selected ? 'bg-primary text-primary-foreground font-bold' : 'bg-muted hover:bg-accent',
-                isToday && !selected && 'ring-2 ring-primary/50'
+                isEndpoint ? 'bg-primary text-primary-foreground font-bold'
+                  : inRange ? 'bg-primary/15 text-foreground'
+                  : 'bg-muted hover:bg-accent',
+                isToday && !isEndpoint && 'ring-2 ring-primary/50'
               )}
             >
               {d}

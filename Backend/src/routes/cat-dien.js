@@ -25,12 +25,14 @@ router.get('/stations', async (req, res) => {
   }
 });
 
-// GET /api/cat-dien/search?station=Tram+A,Tram+B&date=20/07&donVi=PC05HH — tra cứu kết hợp trạm + ngày (mini app CatDien)
+// GET /api/cat-dien/search?station=Tram+A,Tram+B&dateFrom=20/07&dateTo=25/07&donVi=PC05HH — tra cứu kết hợp trạm + khoảng ngày (mini app CatDien)
+//   dateFrom/dateTo: "dd/MM" | "dd/MM/yyyy". Chỉ truyền dateFrom (dateTo để trống) → tra đúng 1 ngày.
+//   date: tham số cũ, tương đương chỉ chọn 1 ngày — vẫn hỗ trợ để không phá vỡ lời gọi cũ.
 router.get('/search', async (req, res) => {
   try {
-    const { station = '', date = '', donVi } = req.query;
+    const { station = '', date = '', dateFrom = '', dateTo = '', donVi } = req.query;
     const stationNames = station ? station.split(',').map((s) => s.trim()).filter(Boolean) : [];
-    const items = await getOutagesByStations(stationNames, date, donVi);
+    const items = await getOutagesByStations(stationNames, dateFrom || date, dateTo, donVi);
     res.json({ count: items.length, items });
   } catch (err) {
     res.status(500).json({ error: err.message });
